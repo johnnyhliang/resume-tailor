@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Resume Tailor</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Syne:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #f5f3ef;
+  --surface: #ffffff;
+  --surface2: #f0ede8;
+  --border: #e0dbd3;
+  --border2: #ccc8c0;
+  --text: #1a1814;
+  --muted: #8c8880;
+  --muted2: #6b6760;
+  --accent: #2c5f2e;
+  --accent-light: #e8f0e8;
+  --accent-mid: #4a8c4d;
+  --warn: #8c5200;
+  --warn-light: #fef3e2;
+  --mono: 'JetBrains Mono', monospace;
+  --display: 'Syne', sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--display);
+  font-size: 14px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 16px 24px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.api-status {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--surface2);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.api-status:hover { border-color: var(--border2); }
+.api-status.connected { background: var(--accent-light); color: var(--accent); }
+.api-status.error { background: var(--warn-light); color: var(--warn); }
+
+.tabs {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  background: var(--surface2);
+  border-radius: 6px;
+  padding: 3px;
+}
+
+.tab {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 5px 14px;
+  border-radius: 4px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  letter-spacing: 0.04em;
+}
+
+.tab.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.page { display: none; flex: 1; }
+.page.active { display: flex; }
+
+/* === TAILOR PAGE === */
+.tailor-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  flex: 1;
+  min-height: 0;
+}
+
+.panel {
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.panel:last-child { border-right: none; }
+
+.panel-header {
+  padding: 14px 20px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.panel-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  font-weight: 400;
+}
+
+.panel-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+textarea {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.6;
+  padding: 12px 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+textarea:focus { border-color: var(--accent-mid); }
+textarea::placeholder { color: var(--muted); }
+
+.field-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 6px;
+  display: block;
+}
+
+.field { margin-bottom: 16px; }
+
+.btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  padding: 9px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  width: 100%;
+}
+
+.btn-primary:hover { background: var(--accent-mid); }
+.btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.btn-secondary {
+  background: transparent;
+  color: var(--muted2);
+  border-color: var(--border2);
+}
+
+.btn-secondary:hover { border-color: var(--muted2); color: var(--text); }
+
+.keywords-box {
+  background: var(--accent-light);
+  border: 1px solid #b8d4b8;
+  border-radius: 6px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+}
+
+.keywords-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.keyword-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.chip {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 3px;
+  background: var(--surface);
+  border: 1px solid #b8d4b8;
+  color: var(--accent);
+}
+
+.chip.missing {
+  background: var(--warn-light);
+  border-color: #f0c070;
+  color: var(--warn);
+}
+
+.output-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  min-height: 200px;
+  max-height: 500px;
+  color: var(--text);
+  flex: 1;
+  overflow-y: auto;
+}
+
+.output-placeholder {
+  color: var(--muted);
+  font-style: italic;
+}
+
+.action-row {
+  display: flex;
+  gap: 8px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.block-selector { margin-bottom: 16px; }
+
+.block-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.block-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: left;
+}
+
+.block-toggle:hover { border-color: var(--border2); }
+.block-toggle.selected { border-color: var(--accent-mid); background: var(--accent-light); }
+
+.block-check {
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--border2);
+  border-radius: 3px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.12s;
+}
+
+.block-toggle.selected .block-check {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+  font-size: 9px;
+}
+
+.block-info { flex: 1; min-width: 0; }
+.block-name { font-size: 12px; font-weight: 500; }
+.block-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 12px 0 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 8px;
+}
+
+.thinking-strip {
+  background: var(--warn-light);
+  border: 1px solid #f0c070;
+  border-radius: 5px;
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--warn);
+  line-height: 1.6;
+}
+
+.thinking-label {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+  opacity: 0.7;
+}
+
+.spinner {
+  display: inline-block;
+  width: 10px; height: 10px;
+  border: 1.5px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === COVER LETTER PAGE === */
+.coverletter-layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+}
+
+.cl-field { margin-bottom: 14px; }
+
+.cl-output-area {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 16px;
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1.7;
+  white-space: pre-wrap;
+  min-height: 300px;
+  max-height: 550px;
+  color: var(--text);
+  overflow-y: auto;
+}
+
+select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 9px 12px;
+  outline: none;
+}
+
+/* === LIBRARY PAGE === */
+.library-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  flex: 1;
+}
+
+.lib-sidebar {
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  max-height: calc(100vh - 60px);
+}
+
+.lib-section { padding: 12px 0; border-bottom: 1px solid var(--border); }
+
+.lib-section-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 16px 8px;
+}
+
+.lib-item {
+  padding: 8px 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background 0.1s;
+  border-left: 2px solid transparent;
+}
+
+.lib-item:hover { background: var(--bg); }
+.lib-item.active { border-left-color: var(--accent); background: var(--accent-light); }
+
+.lib-item-name { font-size: 13px; font-weight: 500; }
+.lib-item-meta { font-family: var(--mono); font-size: 10px; color: var(--muted); margin-top: 1px; }
+
+.lib-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.lib-dot.active-block { background: var(--accent); }
+.lib-dot.inactive-block { background: var(--border2); }
+
+.lib-editor {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.lib-editor textarea {
+  flex: 1;
+  min-height: 300px;
+  font-size: 11px;
+}
+
+/* === SETTINGS PAGE === */
+.settings-layout {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 560px;
+}
+
+.settings-group { margin-bottom: 24px; }
+
+.settings-group-title {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted2);
+  margin-bottom: 10px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.settings-input {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 9px 12px;
+  outline: none;
+}
+
+.settings-input:focus { border-color: var(--accent-mid); }
+
+.settings-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 5px;
+}
+
+.settings-hint a { color: var(--accent); text-decoration: none; }
+.settings-hint a:hover { text-decoration: underline; }
+
+.settings-save-msg {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  margin-top: 6px;
+  display: none;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.copy-btn {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 5px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border2);
+  background: transparent;
+  color: var(--muted2);
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.15s;
+}
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { color: var(--accent); border-color: var(--accent); }
+
+/* Responsive */
+@media (max-width: 900px) {
+  .tailor-layout, .coverletter-layout { grid-template-columns: 1fr; }
+  .panel { border-right: none !important; border-bottom: 1px solid var(--border); }
+  .library-layout { grid-template-columns: 1fr; }
+  .lib-sidebar { border-right: none; border-bottom: 1px solid var(--border); max-height: 200px; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">resume.tailor</div>
+  <div class="api-status error" id="apiStatus" onclick="switchTab('settings')">⚙ set API key</div>
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('tailor')">tailor</button>
+    <button class="tab" onclick="switchTab('coverletter')">cover letter</button>
+    <button class="tab" onclick="switchTab('library')">block library</button>
+    <button class="tab" onclick="switchTab('settings')">settings</button>
+  </div>
+</header>
+
+<!-- TAILOR PAGE -->
+<div class="page active" id="page-tailor">
+  <div class="tailor-layout" style="flex:1">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">job description</span></div>
+      <div class="panel-body">
+        <div class="field">
+          <label class="field-label">paste JD here</label>
+          <textarea id="jdInput" rows="10" placeholder="Paste the full job description..."></textarea>
+        </div>
+        <div class="field">
+          <label class="field-label">blocks to include</label>
+          <div class="section-label">experience</div>
+          <div class="block-grid" id="expBlocks"></div>
+          <div class="section-label" style="margin-top:12px">projects</div>
+          <div class="block-grid" id="projBlocks"></div>
+        </div>
+        <button class="btn btn-primary" id="tailorBtn" onclick="tailorResume()">tailor resume →</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">tailored output</span>
+        <button class="copy-btn" id="copyOutputBtn" onclick="copyOutput()" style="margin-left:auto">copy .tex</button>
+      </div>
+      <div class="panel-body" style="display:flex;flex-direction:column;gap:12px">
+        <div id="keywordsBox" style="display:none"></div>
+        <div id="thinkingBox" style="display:none"></div>
+        <div class="output-area" id="outputArea">
+          <span class="output-placeholder">Tailored LaTeX will appear here...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- COVER LETTER PAGE -->
+<div class="page" id="page-coverletter">
+  <div class="coverletter-layout" style="flex:1">
+    <div class="panel">
+      <div class="panel-header"><span class="panel-title">cover letter inputs</span></div>
+      <div class="panel-body">
+        <div class="cl-field">
+          <label class="field-label">company name</label>
+          <textarea id="clCompany" rows="1" placeholder="e.g. Google"></textarea>
+        </div>
+        <div class="cl-field">
+          <label class="field-label">role / position</label>
+          <textarea id="clRole" rows="1" placeholder="e.g. Software Engineering Intern"></textarea>
+        </div>
+        <div class="cl-field">
+          <label class="field-label">job description</label>
+          <textarea id="clJD" rows="6" placeholder="Paste the job description or key requirements..."></textarea>
+        </div>
+        <div class="cl-field">
+          <label class="field-label">specific points to highlight (optional)</label>
+          <textarea id="clNotes" rows="2" placeholder="e.g. Mention Helivox experience, interested in frontend..."></textarea>
+        </div>
+        <div class="cl-field">
+          <label class="field-label">tone</label>
+          <select id="clTone">
+            <option value="professional">Professional</option>
+            <option value="enthusiastic">Enthusiastic</option>
+            <option value="concise">Concise / Direct</option>
+            <option value="storytelling">Storytelling</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" id="clBtn" onclick="generateCoverLetter()">generate cover letter →</button>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <span class="panel-title">cover letter</span>
+        <button class="copy-btn" id="copyClBtn" onclick="copyCoverLetter()" style="margin-left:auto">copy</button>
+      </div>
+      <div class="panel-body">
+        <div class="cl-output-area" id="clOutput">
+          <span class="output-placeholder">Your cover letter will appear here...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LIBRARY PAGE -->
+<div class="page" id="page-library">
+  <div class="library-layout" style="flex:1">
+    <div class="lib-sidebar">
+      <div class="lib-section">
+        <div class="lib-section-title">experience</div>
+        <div id="libExpList"></div>
+      </div>
+      <div class="lib-section">
+        <div class="lib-section-title">projects</div>
+        <div id="libProjList"></div>
+      </div>
+      <div class="lib-section">
+        <div class="lib-section-title">static</div>
+        <div id="libStaticList"></div>
+      </div>
+    </div>
+    <div class="lib-editor" id="libEditor">
+      <div style="color:var(--muted);font-family:var(--mono);font-size:12px;margin:auto">select a block to edit</div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div class="settings-layout">
+    <div>
+      <div class="settings-group">
+        <div class="settings-group-title">Gemini API Key</div>
+        <input class="settings-input" id="apiKeyInput" type="password" placeholder="Enter your Gemini API key (AIza...)">
+        <div class="settings-hint">Get a free key at <a href="https://ai.google.dev" target="_blank">ai.google.dev</a> — 1,500 requests/day free</div>
+        <button class="btn btn-primary" style="width:auto;margin-top:10px;padding:8px 20px" onclick="saveApiKey()">save key</button>
+        <div class="settings-save-msg" id="saveMsg">✓ API key saved</div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Model</div>
+        <select id="modelSelect">
+          <option value="gemini-2.0-flash">gemini-2.0-flash (fast, recommended)</option>
+          <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview (smarter)</option>
+          <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview (best quality)</option>
+        </select>
+        <div class="settings-hint">Flash is fastest and free; Pro has best reasoning for complex JDs</div>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Your Info (used in cover letters)</div>
+        <div style="margin-bottom:10px">
+          <label class="field-label">email</label>
+          <input class="settings-input" id="settingsEmail" type="email" value="jonliang@umich.edu">
+        </div>
+        <div style="margin-bottom:10px">
+          <label class="field-label">phone</label>
+          <input class="settings-input" id="settingsPhone" type="text" value="(309) 361-7377">
+        </div>
+        <div style="margin-bottom:10px">
+          <label class="field-label">linkedin</label>
+          <input class="settings-input" id="settingsLinkedin" type="text" value="linkedin.com/in/johnnyhliang">
+        </div>
+        <div style="margin-bottom:10px">
+          <label class="field-label">github</label>
+          <input class="settings-input" id="settingsGithub" type="text" value="github.com/johnnyhliang">
+        </div>
+        <div style="margin-bottom:10px">
+          <label class="field-label">website</label>
+          <input class="settings-input" id="settingsWebsite" type="text" value="johnnyliang.me">
+        </div>
+        <button class="btn btn-primary" style="width:auto;padding:8px 20px" onclick="savePersonalInfo()">save info</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== BLOCK LIBRARY =====
+const BLOCKS = {
+  experience: [
+    {
+      id: 'exp_freelance',
+      name: 'Web Dev Contractor',
+      meta: 'Mar 2020 – Present',
+      active: true,
+      tex: `\\resumeSubheading
+    {Web Development Contractor \\& Consulting}{March 2020 -- Present}
+    {Freelance}{}
+    \\resumeItemListStart
+        \\resumeItem{Delivered 16+ custom web applications and landing pages for small businesses across retail, healthcare, and professional services, generating \\$10,000+ in revenue}
+        \\resumeItem{Achieved 90+ Google PageSpeed scores through lazy-loading, image compression, server-side rendering, and SEO implementation, generating a 150\\% average increase in client web engagement}
+        \\resumeItem{Managed client acquisition, project scoping/development, technical delivery, and ongoing maintenance contracts}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'exp_helivox',
+      name: 'Helivox — Lead Developer',
+      meta: 'Jan 2023 – May 2025',
+      active: true,
+      tex: `\\resumeSubheading
+    {Helivox}{Jan 2023 -- May 2025}
+    {Lead Developer}{}
+    \\resumeItemListStart
+        \\resumeItem{Architected and deployed responsive web applications using Next.js from ground up, managing complete hosting infrastructure and deployment pipeline at zero cost and supported organizational growth to 75+ team members}
+        \\resumeItem{Built outreach tracking and communication platforms for branches across Michigan and Georgia, enabling staff to manage more community contacts while reducing manual data entry by 70\\%}
+        \\resumeItem{Facilitated communication between executive and operational teams for donation drives, educational seminars, successfully delivering 11+ major initiatives on schedule despite varying volunteer availability}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'exp_mit',
+      name: 'MIT Beaver Works',
+      meta: 'Jul – Aug 2024',
+      active: true,
+      tex: `\\resumeSubheading
+    {MIT Beaver Works Summer Institute}{July -- August 2024}
+    {Hardware Engineering | Cambridge, MA}{}
+    \\resumeItemListStart
+        \\resumeItem{Co-designed, prototyped, and built an electronically assisted walking cane with team of 4 students, developing CAD models, PCB circuit schematics, and user-friendly interface for the visually impaired}
+        \\resumeItem{Optimized and implemented microelectronic circuits for real-time sensor integration and obstacle detection}
+        \\resumeItem{Presented prototype to 200+ audience members including MIT staff and industry professionals}
+    \\resumeItemListEnd`
+    }
+  ],
+  projects: [
+    {
+      id: 'proj_discord',
+      name: 'Discord App Platform (Magic Bot)',
+      meta: 'NextJS, Redis, MongoDB',
+      active: true,
+      tex: `\\resumeProjectHeading
+    {\\textbf{Discord Application Platform} $|$ \\emph{NextJS, Prisma, Discord API, Redis, MongoDB}}{March 2020 -- Nov 2024}
+    \\resumeItemListStart
+        \\resumeItem{Built and scaled multi-purpose Discord bot that served up to 40,000+ concurrent users with 99.9\\% uptime}
+        \\resumeItem{Implemented OAuth authentication system with web dashboard, Redis caching for sub-100ms response times, and database optimization reducing query times by 60\\%}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'proj_celiac',
+      name: 'Celiac Disease CNN Research',
+      meta: 'CNNs, NCBI GEO',
+      active: true,
+      tex: `\\resumeProjectHeading
+    {\\textbf{Celiac Disease Research - Computational Biology Analysis} $|$ \\emph{CNNs}}{Nov 2023 -- Feb 2024}
+    \\resumeItemListStart
+        \\resumeItem{Independently researched Ubiquitin-proteasome system correlations in Celiac Disease using NCBI GEO datasets and convolutional neural networks to identify gene expression patterns}
+        \\resumeItem{Analyzed gene interaction networks with StringDB and GeneCards database for comprehensive pathway mapping}
+        \\resumeItem{Earned Honorable Mention at University of Michigan GIDAS High School Research Conference}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'proj_semcomp',
+      name: 'SemComp — Text Classification',
+      meta: 'PyTorch, 86% accuracy',
+      active: true,
+      tex: `\\resumeProjectHeading
+    {\\textbf{SemComp - Semantic Text Classification Analysis} $|$ \\emph{Pytorch, zstd}}{April 2024}
+    \\resumeItemListStart
+        \\resumeItem{Developed semantic compression algorithm achieving sub-millisecond inference on 10,000-entry news dataset with 86\\% accuracy based on pattern matching in compressor states without the need for neural networks}
+        \\resumeItem{Created production-ready pipeline with automated preprocessing and evaluation metrics}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'proj_crypto',
+      name: 'Crypto Monte Carlo Simulator',
+      meta: 'Python, Matplotlib',
+      active: true,
+      tex: `\\resumeProjectHeading
+    {\\textbf{Crypto Price Simulation \\& Risk Analysis} $|$ \\emph{Python, Matplotlib}}{October 2025}
+    \\resumeItemListStart
+        \\resumeItem{Simulated asset prices using Geometric Brownian Motion and Monte Carlo methods (200,000+ paths)}
+        \\resumeItem{Modeled portfolio risk using correlation matrices, Cholesky decomposition, matrix algebra, and statistical methods}
+        \\resumeItem{Calculated Value at Risk (VaR), loss probabilities; visualized path simulations and distribution}
+    \\resumeItemListEnd`
+    },
+    {
+      id: 'proj_usdc',
+      name: 'USDC Payment Indexer',
+      meta: 'Rust, Tokio, PostgreSQL — inactive',
+      active: false,
+      tex: `\\resumeProjectHeading
+    {\\textbf{Multi-Chain USDC Payment Indexer} $|$ \\emph{Rust, Tokio, PostgreSQL, Ethers-rs}}{Nov 2024}
+    \\resumeItemListStart
+        \\resumeItem{Built high-performance stablecoin transaction indexer in Rust using Tokio async runtime and ethers-rs, concurrently monitoring USDC transfers across Ethereum, Base, and Polygon with 12-block confirmation depth for reorg safety}
+        \\resumeItem{Implemented type-safe event parsing with strongly-typed ABI bindings, preventing runtime deserialization errors and ensuring accurate tracking of Transfer events with sender, receiver, and amount validation}
+        \\resumeItem{Designed PostgreSQL integration with SQLx compile-time query verification and connection pooling, handling RPC provider failover with exponential backoff retry logic across multiple endpoints}
+    \\resumeItemListEnd`
+    }
+  ],
+  static: [
+    {
+      id: 'static_heading',
+      name: 'Heading',
+      meta: 'Jonathan Liang',
+      active: true,
+      tex: `\\begin{center}
+    \\textbf{\\Huge \\scshape Jonathan Liang} \\\\ \\vspace{1pt}
+    \\small (309) 361-7377 $|$ \\href{mailto:jonliang @umich.edu}{\\underline{jonliang @umich.edu}} $|$
+    \\href{https://linkedin.com/in/johnnyhliang}{\\underline{linkedin.com/in/johnnyhliang}} $|$
+    \\href{https://github.com/johnnyhliang}{\\underline{github.com/johnnyhliang}} $|$
+    \\href{https://johnnyliang.me}{\\underline{johnnyliang.me}}
+\\end{center}`
+    },
+    {
+      id: 'static_education',
+      name: 'Education',
+      meta: 'UMich CS+EE, 3.68',
+      active: true,
+      tex: `\\section{Education}
+    \\resumeSubHeadingListStart
+    \\resumeSubheading
+    {University of Michigan, College of Engineering}{Expected Graduation: May 2028}
+    {B.S.E Major in Computer Science, Minor in Electrical Engineering}{Cumulative GPA: 3.68/4.0}
+    \\resumeSubHeadingListEnd`
+    },
+    {
+      id: 'static_skills',
+      name: 'Technical Skills',
+      meta: 'Languages, frameworks',
+      active: true,
+      tex: `\\section{Technical Skills}
+    \\begin{itemize}[leftmargin=0.15in, label={}]
+\t\\small{\\item{
+\t\t\\textbf{Languages}{: C, C++, Rust, Typescript, Python, Matlab, Solidity} \\\\
+\t\t\\textbf{Technologies}{: PyTorch, Scikit-learn, Pydantic, NextJS, gRPC, Docker, OpenCV, AWS, Smart Contracts, Uniswap} \\\\
+        \\textbf{Campus Involvements}{: Spark Electric Motorcycle Controls Team, Michigan Blockchain, Michigan Fabrication, Michigan Algorithmic Traders}
+\t}}
+    \\end{itemize}`
+    },
+    {
+      id: 'static_awards',
+      name: 'Awards',
+      meta: 'USACO Gold, Code Jam',
+      active: false,
+      tex: `\\section{Awards}
+    \\begin{itemize}[leftmargin=0.15in, label={}]
+\t\\small{\\item{
+\t\t\\textbf{Google Code Jam (2022)}{: Round 2 Qualifier (Top $\\sim$3000 Contestants)} \\\\
+\t\t\\textbf{USA Computing Olympiad (2024)}{: Gold Division Contestant} \\\\
+\t}}
+    \\end{itemize}`
+    }
+  ]
+};
+
+const RESUME_PREAMBLE = `%-------------------------
+% Resume — Jonathan Liang (auto-tailored)
+%------------------------
+
+\\documentclass[letterpaper,11pt]{article}
+
+\\usepackage{fontawesome5}
+\\usepackage{latexsym}
+\\usepackage[empty]{fullpage}
+\\usepackage{titlesec}
+\\usepackage{marvosym}
+\\usepackage[usenames,dvipsnames]{color}
+\\usepackage{verbatim}
+\\usepackage{enumitem}
+\\usepackage[hidelinks]{hyperref}
+\\usepackage{fancyhdr}
+\\usepackage[english]{babel}
+\\usepackage{tabularx}
+\\input{glyphtounicode}
+\\usepackage[semibold]{raleway}
+\\pagestyle{fancy}
+\\fancyhf{}
+\\fancyfoot{}
+\\renewcommand{\\headrulewidth}{0pt}
+\\renewcommand{\\footrulewidth}{0pt}
+\\addtolength{\\oddsidemargin}{-0.5in}
+\\addtolength{\\evensidemargin}{-0.5in}
+\\addtolength{\\textwidth}{1in}
+\\addtolength{\\topmargin}{-.5in}
+\\addtolength{\\textheight}{1.0in}
+\\urlstyle{same}
+\\raggedbottom
+\\raggedright
+\\setlength{\\tabcolsep}{0in}
+\\titleformat{\\section}{\\vspace{-4pt}\\scshape\\raggedright\\large}{}{0em}{}[\\color{black}\\titlerule\\vspace{-5pt}]
+\\pdfgentounicode=1
+
+\\newcommand{\\resumeItem}[1]{\\item\\small{{#1 \\vspace{-2pt}}}}
+\\newcommand{\\resumeSubheading}[4]{\\vspace{-2pt}\\item\\begin{tabular*}{0.97\\textwidth}[t]{l @{\\extracolsep{\\fill}}r}\\textbf{#1} & #2 \\\\\\textit{\\small#3} & \\textit{\\small #4} \\\\\\end{tabular*}\\vspace{-7pt}}
+\\newcommand{\\resumeProjectHeading}[2]{\\item\\begin{tabular*}{0.97\\textwidth}{l @{\\extracolsep{\\fill}}r}\\small#1 & #2 \\\\\\end{tabular*}\\vspace{-7pt}}
+\\newcommand{\\resumeSubItem}[1]{\\resumeItem{#1}\\vspace{-4pt}}
+\\renewcommand\\labelitemii{$\\vcenter{\\hbox{\\tiny$\\bullet$}}$}
+\\newcommand{\\resumeSubHeadingListStart}{\\begin{itemize}[leftmargin=0.15in, label={}]}
+\\newcommand{\\resumeSubHeadingListEnd}{\\end{itemize}}
+\\newcommand{\\resumeItemListStart}{\\begin{itemize}}
+\\newcommand{\\resumeItemListEnd}{\\end{itemize}\\vspace{-5pt}}
+\\definecolor{Black}{RGB}{0, 0, 0}
+
+\\begin{document}`;
+
+// ===== STATE =====
+let selectedBlocks = new Set(
+  [...BLOCKS.experience, ...BLOCKS.projects].filter(b => b.active).map(b => b.id)
+);
+let activeLibItem = null;
+
+// ===== SETTINGS (localStorage) =====
+function getApiKey() { return localStorage.getItem('gemini_api_key') || ''; }
+function getModel() { return localStorage.getItem('gemini_model') || 'gemini-2.0-flash'; }
+
+function saveSettingsToUI() {
+  const key = getApiKey();
+  if (key) {
+    document.getElementById('apiKeyInput').value = key;
+    updateApiStatus(true);
+  } else {
+    updateApiStatus(false);
+  }
+  document.getElementById('modelSelect').value = getModel();
+
+  const info = getPersonalInfo();
+  if (info.email) document.getElementById('settingsEmail').value = info.email;
+  if (info.phone) document.getElementById('settingsPhone').value = info.phone;
+  if (info.linkedin) document.getElementById('settingsLinkedin').value = info.linkedin;
+  if (info.github) document.getElementById('settingsGithub').value = info.github;
+  if (info.website) document.getElementById('settingsWebsite').value = info.website;
+}
+
+function updateApiStatus(connected) {
+  const el = document.getElementById('apiStatus');
+  if (connected) {
+    el.textContent = '● gemini connected';
+    el.className = 'api-status connected';
+  } else {
+    el.textContent = '⚙ set API key';
+    el.className = 'api-status error';
+  }
+}
+
+function saveApiKey() {
+  const key = document.getElementById('apiKeyInput').value.trim();
+  if (!key) { alert('Enter an API key first.'); return; }
+  localStorage.setItem('gemini_api_key', key);
+  updateApiStatus(true);
+  const msg = document.getElementById('saveMsg');
+  msg.style.display = 'block';
+  setTimeout(() => msg.style.display = 'none', 2000);
+}
+
+function saveModel() {
+  localStorage.setItem('gemini_model', document.getElementById('modelSelect').value);
+}
+
+function getPersonalInfo() {
+  try {
+    return JSON.parse(localStorage.getItem('personal_info') || '{}');
+  } catch { return {}; }
+}
+
+function savePersonalInfo() {
+  const info = {
+    email: document.getElementById('settingsEmail').value.trim(),
+    phone: document.getElementById('settingsPhone').value.trim(),
+    linkedin: document.getElementById('settingsLinkedin').value.trim(),
+    github: document.getElementById('settingsGithub').value.trim(),
+    website: document.getElementById('settingsWebsite').value.trim()
+  };
+  localStorage.setItem('personal_info', JSON.stringify(info));
+  const msg = document.getElementById('saveMsg');
+  msg.textContent = '✓ Personal info saved';
+  msg.style.display = 'block';
+  setTimeout(() => { msg.style.display = 'none'; msg.textContent = '✓ API key saved'; }, 2000);
+}
+
+// ===== NAVIGATION =====
+function switchTab(tab) {
+  document.querySelectorAll('.tab').forEach(t => {
+    const label = t.textContent.trim();
+    const map = { 'tailor': 'tailor', 'cover letter': 'coverletter', 'block library': 'library', 'settings': 'settings' };
+    t.classList.toggle('active', map[label] === tab);
+  });
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+// ===== BLOCK SELECTORS =====
+function renderBlockSelectors() {
+  const expContainer = document.getElementById('expBlocks');
+  const projContainer = document.getElementById('projBlocks');
+  expContainer.innerHTML = '';
+  projContainer.innerHTML = '';
+  BLOCKS.experience.forEach(b => expContainer.appendChild(makeBlockToggle(b)));
+  BLOCKS.projects.forEach(b => projContainer.appendChild(makeBlockToggle(b)));
+}
+
+function makeBlockToggle(block) {
+  const el = document.createElement('div');
+  el.className = 'block-toggle' + (selectedBlocks.has(block.id) ? ' selected' : '');
+  el.onclick = () => {
+    if (selectedBlocks.has(block.id)) selectedBlocks.delete(block.id);
+    else selectedBlocks.add(block.id);
+    el.classList.toggle('selected');
+    el.querySelector('.block-check').textContent = selectedBlocks.has(block.id) ? '✓' : '';
+  };
+  el.innerHTML = `
+    <div class="block-check">${selectedBlocks.has(block.id) ? '✓' : ''}</div>
+    <div class="block-info">
+      <div class="block-name">${block.name}</div>
+      <div class="block-meta">${block.meta}</div>
+    </div>
+  `;
+  return el;
+}
+
+// ===== LIBRARY =====
+function renderLibrary() {
+  ['Exp', 'Proj', 'Static'].forEach(type => {
+    const key = type === 'Exp' ? 'experience' : type === 'Proj' ? 'projects' : 'static';
+    const container = document.getElementById('lib' + type + 'List');
+    container.innerHTML = '';
+    BLOCKS[key].forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'lib-item' + (activeLibItem === b.id ? ' active' : '');
+      el.onclick = () => { activeLibItem = b.id; renderLibrary(); renderLibEditor(); };
+      el.innerHTML = `
+        <div class="lib-dot ${b.active ? 'active-block' : 'inactive-block'}"></div>
+        <div>
+          <div class="lib-item-name">${b.name}</div>
+          <div class="lib-item-meta">${b.meta}</div>
+        </div>
+      `;
+      container.appendChild(el);
+    });
+  });
+}
+
+function renderLibEditor() {
+  const editor = document.getElementById('libEditor');
+  const allBlocks = [...BLOCKS.experience, ...BLOCKS.projects, ...BLOCKS.static];
+  const block = allBlocks.find(b => b.id === activeLibItem);
+  if (!block) return;
+
+  editor.innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:14px;font-weight:600">${block.name}</span>
+      <span style="font-family:var(--mono);font-size:11px;color:var(--muted)">${block.meta}</span>
+      <button class="copy-btn" id="libCopyBtn" onclick="copyBlock('${block.id}')">copy</button>
+    </div>
+    <textarea id="libTexArea" rows="20" style="flex:1;min-height:300px">${block.tex.replace(/</g, '&lt;')}</textarea>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="width:auto;padding:8px 20px" onclick="saveBlock('${block.id}')">save changes</button>
+    </div>
+  `;
+}
+
+function saveBlock(id) {
+  const allBlocks = [...BLOCKS.experience, ...BLOCKS.projects, ...BLOCKS.static];
+  const block = allBlocks.find(b => b.id === id);
+  if (!block) return;
+  block.tex = document.getElementById('libTexArea').value;
+  const btn = event.target;
+  btn.textContent = 'saved ✓';
+  setTimeout(() => btn.textContent = 'save changes', 1500);
+}
+
+function copyBlock(id) {
+  const allBlocks = [...BLOCKS.experience, ...BLOCKS.projects, ...BLOCKS.static];
+  const block = allBlocks.find(b => b.id === id);
+  if (!block) return;
+  navigator.clipboard.writeText(block.tex);
+  const btn = document.getElementById('libCopyBtn');
+  btn.textContent = 'copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+}
+
+// ===== GEMINI API =====
+async function callGemini(prompt) {
+  const apiKey = getApiKey();
+  const model = getModel();
+
+  if (!apiKey) {
+    throw new Error('No API key configured. Go to Settings to add your Gemini API key.');
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4000, temperature: 0.3 }
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.error?.message || 'API request failed');
+  }
+
+  const data = await response.json();
+  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+  if (!text) throw new Error('No response from Gemini. Try again.');
+  return text;
+}
+
+// ===== RESUME TAILORING =====
+async function tailorResume() {
+  const jd = document.getElementById('jdInput').value.trim();
+  if (!jd) { alert('Paste a job description first.'); return; }
+  if (selectedBlocks.size === 0) { alert('Select at least one block.'); return; }
+
+  const btn = document.getElementById('tailorBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>tailoring...';
+
+  document.getElementById('keywordsBox').style.display = 'none';
+  document.getElementById('thinkingBox').style.display = 'none';
+  document.getElementById('outputArea').innerHTML = '<span class="output-placeholder">generating...</span>';
+
+  const chosenExp = BLOCKS.experience.filter(b => selectedBlocks.has(b.id));
+  const chosenProj = BLOCKS.projects.filter(b => selectedBlocks.has(b.id));
+  const blocksForPrompt = [...chosenExp, ...chosenProj].map(b => `[BLOCK: ${b.name}]\n${b.tex}`).join('\n\n');
+  const staticSkills = BLOCKS.static.find(b => b.id === 'static_skills');
+
+  const prompt = `You are a resume tailoring assistant for Jonathan Liang, a CS + EE freshman at University of Michigan (GPA 3.68).
+
+JOB DESCRIPTION:
+${jd}
+
+RESUME BLOCKS AVAILABLE (LaTeX):
+${blocksForPrompt}
+
+CURRENT SKILLS SECTION:
+${staticSkills?.tex || ''}
+
+Your task:
+1. Extract the top 10-15 ATS keywords/skills from the JD (both hard skills and soft signals)
+2. For each selected block, rewrite the bullet points to:
+   - Naturally incorporate relevant keywords from the JD without keyword stuffing
+   - Emphasize the most relevant aspects for this specific role
+   - Keep the same LaTeX structure and commands exactly
+   - Keep numbers/metrics intact
+   - Do not fabricate new experiences
+3. Suggest any updates to the skills section (add/reorder languages or technologies that appear in the JD)
+4. Output the full tailored LaTeX for experience + projects sections (not heading/education)
+
+First write <thinking> tags with: which keywords are most critical, which blocks are most/least relevant, and your tailoring strategy.
+
+Then output:
+KEYWORDS: [comma-separated list of extracted keywords]
+MISSING: [keywords from JD not currently in resume]
+
+Then the tailored LaTeX blocks, each wrapped like:
+---BLOCK: [block name]---
+[tailored latex]
+---END---
+
+Then a tailored skills line:
+SKILLS_TEX: [updated \\textbf{Languages}... line only, or UNCHANGED if no update needed]`;
+
+  try {
+    const text = await callGemini(prompt);
+    parseOutput(text);
+  } catch (err) {
+    document.getElementById('outputArea').textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'tailor resume →';
+}
+
+function parseOutput(text) {
+  const thinkMatch = text.match(/<thinking>([\s\S]*?)<\/thinking>/);
+  if (thinkMatch) {
+    const thinkBox = document.getElementById('thinkingBox');
+    thinkBox.style.display = 'block';
+    thinkBox.innerHTML = `<div class="thinking-strip"><div class="thinking-label">tailoring notes</div>${thinkMatch[1].trim()}</div>`;
+  }
+
+  const kwMatch = text.match(/KEYWORDS:\s*(.+?)(?:\n|$)/);
+  const missingMatch = text.match(/MISSING:\s*(.+?)(?:\n|$)/);
+  if (kwMatch) {
+    const kwBox = document.getElementById('keywordsBox');
+    kwBox.style.display = 'block';
+    const kwList = kwMatch[1].split(',').map(k => k.trim()).filter(Boolean);
+    const missingList = missingMatch ? missingMatch[1].split(',').map(k => k.trim()).filter(k => k && k.toLowerCase() !== 'none') : [];
+    kwBox.innerHTML = `<div class="keywords-box">
+      <div class="keywords-title">extracted keywords</div>
+      <div class="keyword-chips">
+        ${kwList.map(k => `<span class="chip">${k}</span>`).join('')}
+        ${missingList.map(k => `<span class="chip missing">⚠ ${k}</span>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  const blockMatches = [...text.matchAll(/---BLOCK: (.+?)---\n([\s\S]*?)---END---/g)];
+  const skillsMatch = text.match(/SKILLS_TEX:\s*([\s\S]+?)(?:\n\n|$)/);
+
+  const chosenExpIds = BLOCKS.experience.filter(b => selectedBlocks.has(b.id)).map(b => b.id);
+  const chosenProjIds = BLOCKS.projects.filter(b => selectedBlocks.has(b.id)).map(b => b.id);
+
+  const tailoredMap = {};
+  blockMatches.forEach(m => { tailoredMap[m[1].trim()] = m[2].trim(); });
+
+  let expTex = chosenExpIds.map(id => {
+    const block = BLOCKS.experience.find(b => b.id === id);
+    return tailoredMap[block.name] || block.tex;
+  }).join('\n\n');
+
+  let projTex = chosenProjIds.map(id => {
+    const block = BLOCKS.projects.find(b => b.id === id);
+    return tailoredMap[block.name] || block.tex;
+  }).join('\n\n');
+
+  const heading = BLOCKS.static.find(b => b.id === 'static_heading')?.tex || '';
+  const education = BLOCKS.static.find(b => b.id === 'static_education')?.tex || '';
+  let skillsTex = BLOCKS.static.find(b => b.id === 'static_skills')?.tex || '';
+  if (skillsMatch && skillsMatch[1].trim() !== 'UNCHANGED') {
+    skillsTex = skillsTex.replace(/\\textbf\{Languages\}.*?(?=\\\\|$)/, skillsMatch[1].trim());
+  }
+
+  const fullTex = [
+    RESUME_PREAMBLE,
+    '', heading, '',
+    '%-----------EDUCATION-----------%',
+    education, '',
+    '%-----------EXPERIENCE-----------%',
+    '\\section{Experience}',
+    '\\resumeSubHeadingListStart',
+    expTex,
+    '\\resumeSubHeadingListEnd', '',
+    '%-----------PROJECTS-----------%',
+    '\\section{Projects}',
+    '\\resumeSubHeadingListStart',
+    projTex,
+    '\\resumeSubHeadingListEnd', '',
+    skillsTex, '',
+    '\\end{document}'
+  ].join('\n');
+
+  document.getElementById('outputArea').textContent = fullTex;
+}
+
+function copyOutput() {
+  const text = document.getElementById('outputArea').textContent;
+  if (!text || text.includes('Tailored LaTeX')) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyOutputBtn');
+  btn.textContent = 'copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy .tex'; btn.classList.remove('copied'); }, 1500);
+}
+
+// ===== COVER LETTER =====
+async function generateCoverLetter() {
+  const company = document.getElementById('clCompany').value.trim();
+  const role = document.getElementById('clRole').value.trim();
+  const jd = document.getElementById('clJD').value.trim();
+  const notes = document.getElementById('clNotes').value.trim();
+  const tone = document.getElementById('clTone').value;
+
+  if (!company || !role) { alert('Enter at least company name and role.'); return; }
+  if (!jd) { alert('Paste a job description or key requirements.'); return; }
+
+  const btn = document.getElementById('clBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>generating...';
+
+  document.getElementById('clOutput').innerHTML = '<span class="output-placeholder">generating...</span>';
+
+  const info = getPersonalInfo();
+
+  const prompt = `Write a cover letter for Jonathan Liang applying to this position.
+
+APPLICANT INFO:
+Name: Jonathan Liang
+Email: ${info.email || 'jonliang@umich.edu'}
+Phone: ${info.phone || '(309) 361-7377'}
+Education: B.S.E Computer Science, Minor Electrical Engineering, University of Michigan, GPA 3.68, Expected May 2028
+
+POSITION:
+Company: ${company}
+Role: ${role}
+
+JOB DESCRIPTION / REQUIREMENTS:
+${jd}
+
+${notes ? 'APPLICANT NOTES: ' + notes : ''}
+
+RESUME CONTEXT (Jonathan's background):
+- Web Development Contractor (Freelance, Mar 2020–Present): 16+ web apps, Next.js, SEO, $10K+ revenue
+- Helivox Lead Developer (Jan 2023–May 2025): Next.js, full-stack, 75+ team members, 70% data entry reduction
+- MIT Beaver Works (Jul–Aug 2024): Hardware engineering, PCB design, CAD, sensor integration
+- Discord App Platform: 40,000+ users, OAuth, Redis, MongoDB, 99.9% uptime
+- Celiac Disease CNN Research: Deep learning, NCBI GEO, computational biology
+- SemComp: Semantic text classification, 86% accuracy, PyTorch
+- Crypto Monte Carlo Simulator: Geometric Brownian Motion, risk analysis, VaR
+- Multi-Chain USDC Payment Indexer: Rust, Tokio, PostgreSQL, Ethereum/Base/Polygon
+- Skills: C, C++, Rust, TypeScript, Python, MATLAB, Solidity, PyTorch, NextJS, Docker, AWS
+- Awards: Google Code Jam Round 2 (2022), USACO Gold (2024)
+
+TONE: ${tone}
+
+Requirements:
+- Keep it to 3-4 paragraphs, concise and impactful
+- Use specific metrics from Jonathan's experience where relevant
+- Don't just repeat the resume — tell a story about why Jonathan is a great fit
+- Match the tone requested
+- Format as plain text, ready to paste into email or document
+- Include proper salutation and sign-off
+- Use Jonathan's email in the sign-off`;
+
+  try {
+    const text = await callGemini(prompt);
+    document.getElementById('clOutput').textContent = text;
+  } catch (err) {
+    document.getElementById('clOutput').textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'generate cover letter →';
+}
+
+function copyCoverLetter() {
+  const text = document.getElementById('clOutput').textContent;
+  if (!text || text.includes('cover letter will appear')) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyClBtn');
+  btn.textContent = 'copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
+}
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  saveSettingsToUI();
+  renderBlockSelectors();
+  renderLibrary();
+  document.getElementById('modelSelect').addEventListener('change', saveModel);
+});
+</script>
+</body>
+</html>

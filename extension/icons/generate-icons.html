@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head><title>Generate Icons</title></head>
+<body>
+<canvas id="c48" width="48" height="48"></canvas>
+<canvas id="c128" width="128" height="128"></canvas>
+<script>
+function drawIcon(canvasId, size) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  
+  // Background
+  ctx.fillStyle = '#2c5f2e';
+  ctx.beginPath();
+  ctx.roundRect(0, 0, size, size, size * 0.125);
+  ctx.fill();
+  
+  // Text
+  ctx.fillStyle = '#ffffff';
+  ctx.font = `bold ${size * 0.11}px monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('RESUME', size / 2, size * 0.35);
+  
+  ctx.fillStyle = '#e8f0e8';
+  ctx.fillText('TAILOR', size / 2, size * 0.52);
+  
+  // Lines
+  ctx.fillStyle = '#4a8c4d';
+  ctx.fillRect(size * 0.19, size * 0.62, size * 0.62, size * 0.03);
+  
+  ctx.fillStyle = '#8c8880';
+  ctx.fillRect(size * 0.19, size * 0.69, size * 0.47, size * 0.02);
+  ctx.fillRect(size * 0.19, size * 0.75, size * 0.55, size * 0.02);
+  ctx.fillRect(size * 0.19, size * 0.81, size * 0.39, size * 0.02);
+}
+
+drawIcon('c48', 48);
+drawIcon('c128', 128);
+
+// Auto-download
+setTimeout(() => {
+  document.getElementById('c48').toBlob(blob => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'icon-48.png';
+    a.click();
+  });
+  setTimeout(() => {
+    document.getElementById('c128').toBlob(blob => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'icon-128.png';
+      a.click();
+    });
+  }, 500);
+}, 300);
+</script>
+</body>
+</html>

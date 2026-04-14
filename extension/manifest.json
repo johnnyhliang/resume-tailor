@@ -1,0 +1,24 @@
+{
+  "manifest_version": 3,
+  "name": "Resume Tailor — AI Resume & Cover Letter",
+  "version": "1.0.0",
+  "description": "Tailor your LaTeX resume and generate cover letters using Gemini AI. Built for Jonathan Liang.",
+  "permissions": ["storage", "clipboardWrite"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "resume-tailor@jonathanliang.dev",
+      "strict_min_version": "109.0"
+    }
+  }
+}
