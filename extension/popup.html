@@ -47,472 +47,141 @@ header {
   gap: 12px;
 }
 
-.logo {
-  font-family: var(--mono);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--accent);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.api-status {
-  font-family: var(--mono);
-  font-size: 9px;
-  padding: 3px 8px;
-  border-radius: 3px;
-  background: var(--surface2);
-  color: var(--muted);
-}
+.logo { font-family: var(--mono); font-size: 11px; font-weight: 500; color: var(--accent); letter-spacing: 0.1em; text-transform: uppercase; }
+.api-status { font-family: var(--mono); font-size: 9px; padding: 3px 8px; border-radius: 3px; background: var(--surface2); color: var(--muted); }
 .api-status.connected { background: var(--accent-light); color: var(--accent); }
 .api-status.error { background: var(--warn-light); color: var(--warn); }
 
-.tabs {
-  display: flex;
-  gap: 2px;
-  margin-left: auto;
-  background: var(--surface2);
-  border-radius: 6px;
-  padding: 3px;
-}
-
-.tab {
-  font-family: var(--mono);
-  font-size: 10px;
-  padding: 4px 12px;
-  border-radius: 4px;
-  border: none;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  transition: all 0.15s;
-  letter-spacing: 0.04em;
-}
-
-.tab.active {
-  background: var(--surface);
-  color: var(--text);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-}
+.tabs { display: flex; gap: 2px; margin-left: auto; background: var(--surface2); border-radius: 6px; padding: 3px; }
+.tab { font-family: var(--mono); font-size: 10px; padding: 4px 12px; border-radius: 4px; border: none; background: transparent; color: var(--muted); cursor: pointer; transition: all 0.15s; letter-spacing: 0.04em; }
+.tab.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
 
 .page { display: none; flex-direction: column; flex: 1; min-height: 500px; }
 .page.active { display: flex; }
 
-/* === TAILOR PAGE === */
-.tailor-layout {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  flex: 1;
-  min-height: 0;
-}
-
-.panel {
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-.panel:last-child { border-right: none; }
-
-.panel-header {
-  padding: 10px 16px 8px;
-  border-bottom: 1px solid var(--border);
-  background: var(--surface);
+/* CAPTURE BANNER */
+.capture-banner {
+  background: var(--accent-light);
+  border-bottom: 1px solid #b8d4b8;
+  padding: 10px 16px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
-
-.panel-title {
+.capture-url {
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--muted2);
-  font-weight: 400;
-}
-
-.panel-body {
   flex: 1;
-  overflow-y: auto;
-  padding: 16px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-
-textarea {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.5;
-  padding: 10px 12px;
-  resize: vertical;
-  outline: none;
-  transition: border-color 0.15s;
-}
-
-textarea:focus { border-color: var(--accent-mid); }
-textarea::placeholder { color: var(--muted); }
-
-.field-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--muted2);
-  margin-bottom: 5px;
-  display: block;
-}
-
-.field { margin-bottom: 14px; }
-
-.btn {
+.capture-url.loaded { color: var(--accent); }
+.btn-capture {
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;
-  letter-spacing: 0.06em;
-  padding: 8px 16px;
+  padding: 5px 12px;
   border-radius: 4px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: all 0.15s;
-}
-
-.btn-primary {
+  border: 1px solid var(--accent);
   background: var(--accent);
   color: #fff;
-  border-color: var(--accent);
-  width: 100%;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+  flex-shrink: 0;
 }
+.btn-capture:hover { background: var(--accent-mid); }
+.btn-capture:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* TAILOR LAYOUT */
+.tailor-layout { display: grid; grid-template-columns: 1fr 1fr; flex: 1; min-height: 0; }
+.panel { border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
+.panel:last-child { border-right: none; }
+.panel-header { padding: 10px 16px 8px; border-bottom: 1px solid var(--border); background: var(--surface); display: flex; align-items: center; gap: 8px; }
+.panel-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted2); font-weight: 400; }
+.panel-body { flex: 1; overflow-y: auto; padding: 16px; }
+
+textarea { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 11px; line-height: 1.5; padding: 10px 12px; resize: vertical; outline: none; transition: border-color 0.15s; }
+textarea:focus { border-color: var(--accent-mid); }
+textarea::placeholder { color: var(--muted); }
+
+.field-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted2); margin-bottom: 5px; display: block; }
+.field { margin-bottom: 14px; }
+
+.btn { font-family: var(--mono); font-size: 10px; font-weight: 500; letter-spacing: 0.06em; padding: 8px 16px; border-radius: 4px; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); width: 100%; }
 .btn-primary:hover { background: var(--accent-mid); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
-
-.btn-secondary {
-  background: transparent;
-  color: var(--muted2);
-  border-color: var(--border2);
-}
-
+.btn-secondary { background: transparent; color: var(--muted2); border-color: var(--border2); }
 .btn-secondary:hover { border-color: var(--muted2); color: var(--text); }
 
-.keywords-box {
-  background: var(--accent-light);
-  border: 1px solid #b8d4b8;
-  border-radius: 5px;
-  padding: 10px 12px;
-  margin-bottom: 12px;
-}
+.btn-row { display: flex; gap: 6px; margin-top: 8px; }
+.btn-row .btn { flex: 1; }
 
-.keywords-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  color: var(--accent);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 6px;
-}
+.keywords-box { background: var(--accent-light); border: 1px solid #b8d4b8; border-radius: 5px; padding: 10px 12px; margin-bottom: 12px; }
+.keywords-title { font-family: var(--mono); font-size: 9px; color: var(--accent); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px; }
+.keyword-chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font-family: var(--mono); font-size: 9px; padding: 2px 7px; border-radius: 3px; background: var(--surface); border: 1px solid #b8d4b8; color: var(--accent); }
+.chip.missing { background: var(--warn-light); border-color: #f0c070; color: var(--warn); }
 
-.keyword-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-}
+.output-area { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 12px; font-family: var(--mono); font-size: 10px; line-height: 1.6; white-space: pre-wrap; min-height: 180px; max-height: 400px; color: var(--text); flex: 1; overflow-y: auto; }
+.output-placeholder { color: var(--muted); font-style: italic; }
 
-.chip {
-  font-family: var(--mono);
-  font-size: 9px;
-  padding: 2px 7px;
-  border-radius: 3px;
-  background: var(--surface);
-  border: 1px solid #b8d4b8;
-  color: var(--accent);
-}
+.cl-output-area { background: var(--surface); border: 1px solid var(--border); border-radius: 5px; padding: 14px; font-family: var(--mono); font-size: 11px; line-height: 1.7; white-space: pre-wrap; min-height: 300px; max-height: 500px; color: var(--text); overflow-y: auto; }
 
-.chip.missing {
-  background: var(--warn-light);
-  border-color: #f0c070;
-  color: var(--warn);
-}
+.section-label { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 10px 0 5px; border-bottom: 1px solid var(--border); margin-bottom: 6px; }
 
-.output-area {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 12px;
-  font-family: var(--mono);
-  font-size: 10px;
-  line-height: 1.6;
-  white-space: pre-wrap;
-  min-height: 180px;
-  max-height: 400px;
-  color: var(--text);
-  flex: 1;
-  overflow-y: auto;
-}
+.thinking-strip { background: var(--warn-light); border: 1px solid #f0c070; border-radius: 4px; padding: 8px 12px; margin-bottom: 10px; font-family: var(--mono); font-size: 10px; color: var(--warn); line-height: 1.5; }
+.thinking-label { font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
 
-.output-placeholder {
-  color: var(--muted);
-  font-style: italic;
-}
+.spinner { display: inline-block; width: 9px; height: 9px; border: 1.5px solid var(--border2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-right: 5px; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
-.action-row {
-  display: flex;
-  gap: 6px;
-  padding: 10px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--surface);
-}
+.status-strip { font-family: var(--mono); font-size: 9px; color: var(--accent); padding: 4px 0; text-align: center; }
 
-.block-selector { margin-bottom: 14px; }
-
-.block-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.block-toggle {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 8px 10px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.12s;
-  text-align: left;
-}
-
+/* BLOCK SELECTORS */
+.block-toggle { display: flex; align-items: flex-start; gap: 8px; padding: 8px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; cursor: pointer; transition: all 0.12s; text-align: left; margin-bottom: 5px; }
 .block-toggle:hover { border-color: var(--border2); }
 .block-toggle.selected { border-color: var(--accent-mid); background: var(--accent-light); }
-
-.block-check {
-  width: 13px;
-  height: 13px;
-  border: 1.5px solid var(--border2);
-  border-radius: 3px;
-  flex-shrink: 0;
-  margin-top: 1px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.12s;
-  font-size: 8px;
-}
-
-.block-toggle.selected .block-check {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-}
-
+.block-check { width: 13px; height: 13px; border: 1.5px solid var(--border2); border-radius: 3px; flex-shrink: 0; margin-top: 1px; display: flex; align-items: center; justify-content: center; transition: all 0.12s; font-size: 8px; }
+.block-toggle.selected .block-check { background: var(--accent); border-color: var(--accent); color: white; }
 .block-info { flex: 1; min-width: 0; }
 .block-name { font-size: 11px; font-weight: 500; }
 .block-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 1px; }
 
-.section-label {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 10px 0 5px;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
-}
-
-.thinking-strip {
-  background: var(--warn-light);
-  border: 1px solid #f0c070;
-  border-radius: 4px;
-  padding: 8px 12px;
-  margin-bottom: 10px;
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--warn);
-  line-height: 1.5;
-}
-
-.thinking-label {
-  font-size: 9px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 4px;
-  opacity: 0.7;
-}
-
-.spinner {
-  display: inline-block;
-  width: 9px; height: 9px;
-  border: 1.5px solid var(--border2);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.7s linear infinite;
-  vertical-align: middle;
-  margin-right: 5px;
-}
-
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* === COVER LETTER PAGE === */
-.coverletter-layout {
-  flex: 1;
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 0;
-}
-
-.cl-field { margin-bottom: 12px; }
-
-.cl-output-area {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  padding: 14px;
-  font-family: var(--mono);
-  font-size: 11px;
-  line-height: 1.7;
-  white-space: pre-wrap;
-  min-height: 300px;
-  max-height: 500px;
-  color: var(--text);
-  overflow-y: auto;
-}
-
-/* === LIBRARY PAGE === */
-.library-layout {
-  display: grid;
-  grid-template-columns: 220px 1fr;
-  flex: 1;
-}
-
-.lib-sidebar {
-  border-right: 1px solid var(--border);
-  background: var(--surface);
-  display: flex;
-  flex-direction: column;
-  max-height: 500px;
-  overflow-y: auto;
-}
-
+/* LIBRARY */
+.library-layout { display: grid; grid-template-columns: 220px 1fr; flex: 1; }
+.lib-sidebar { border-right: 1px solid var(--border); background: var(--surface); display: flex; flex-direction: column; max-height: 500px; overflow-y: auto; }
 .lib-section { padding: 10px 0; border-bottom: 1px solid var(--border); }
-
-.lib-section-title {
-  font-family: var(--mono);
-  font-size: 9px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 0 14px 6px;
-}
-
-.lib-item {
-  padding: 7px 14px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  transition: background 0.1s;
-  border-left: 2px solid transparent;
-}
-
+.lib-section-title { font-family: var(--mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); padding: 0 14px 6px; }
+.lib-item { padding: 7px 14px; cursor: pointer; display: flex; align-items: center; gap: 7px; transition: background 0.1s; border-left: 2px solid transparent; }
 .lib-item:hover { background: var(--bg); }
 .lib-item.active { border-left-color: var(--accent); background: var(--accent-light); }
-
 .lib-item-name { font-size: 11px; font-weight: 500; }
 .lib-item-meta { font-family: var(--mono); font-size: 9px; color: var(--muted); margin-top: 1px; }
-
-.lib-dot {
-  width: 5px; height: 5px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
+.lib-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 .lib-dot.active-block { background: var(--accent); }
 .lib-dot.inactive-block { background: var(--border2); }
+.lib-editor { flex: 1; display: flex; flex-direction: column; padding: 14px; gap: 10px; overflow-y: auto; }
+.lib-editor textarea { flex: 1; min-height: 250px; font-size: 10px; }
 
-.lib-editor {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: 14px;
-  gap: 10px;
-  overflow-y: auto;
-}
-
-.lib-editor textarea {
-  flex: 1;
-  min-height: 250px;
-  font-size: 10px;
-}
-
-/* === SETTINGS PAGE === */
-.settings-layout {
-  flex: 1;
-  padding: 24px;
-  max-width: 500px;
-  margin: 0 auto;
-}
-
-.settings-group {
-  margin-bottom: 20px;
-}
-
-.settings-group-title {
-  font-family: var(--mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted2);
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid var(--border);
-}
-
-.settings-input {
-  width: 100%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 5px;
-  color: var(--text);
-  font-family: var(--mono);
-  font-size: 11px;
-  padding: 8px 12px;
-  outline: none;
-}
-
+/* SETTINGS */
+.settings-layout { flex: 1; padding: 24px; max-width: 500px; margin: 0 auto; }
+.settings-group { margin-bottom: 20px; }
+.settings-group-title { font-family: var(--mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted2); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.settings-input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 5px; color: var(--text); font-family: var(--mono); font-size: 11px; padding: 8px 12px; outline: none; }
 .settings-input:focus { border-color: var(--accent-mid); }
+.settings-save-msg { font-family: var(--mono); font-size: 10px; color: var(--accent); margin-top: 6px; display: none; }
 
-.settings-save-msg {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent);
-  margin-top: 6px;
-  display: none;
-}
+.copy-btn { font-family: var(--mono); font-size: 9px; padding: 4px 10px; border-radius: 3px; border: 1px solid var(--border2); background: transparent; color: var(--muted2); cursor: pointer; margin-left: auto; transition: all 0.15s; }
+.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+.copy-btn.copied { color: var(--accent); border-color: var(--accent); }
 
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-
-.copy-btn {
-  font-family: var(--mono);
-  font-size: 9px;
-  padding: 4px 10px;
-  border-radius: 3px;
-  border: 1px solid var(--border2);
-  background: transparent;
-  color: var(--muted2);
-  cursor: pointer;
-  margin-left: auto;
-  transition: all 0.15s;
-}
-.copy-btn:hover { border-color: var(--accent); color: var(--accent); }
-.copy-btn.copied { color: var(--accent); border-color: var(--accent); }
 </style>
 </head>
 <body>
@@ -528,6 +197,12 @@ textarea::placeholder { color: var(--muted); }
   </div>
 </header>
 
+<!-- CAPTURE BANNER (shown on all tabs) -->
+<div class="capture-banner">
+  <div class="capture-url" id="captureUrl">open a job posting, then capture it →</div>
+  <button class="btn-capture" id="captureBtn" onclick="captureCurrentPage()">capture job page</button>
+</div>
+
 <!-- TAILOR PAGE -->
 <div class="page active" id="page-tailor">
   <div class="tailor-layout">
@@ -535,27 +210,31 @@ textarea::placeholder { color: var(--muted); }
       <div class="panel-header"><span class="panel-title">job description</span></div>
       <div class="panel-body">
         <div class="field">
-          <label class="field-label">paste JD here</label>
-          <textarea id="jdInput" rows="8" placeholder="Paste the full job description..."></textarea>
+          <label class="field-label">paste JD — or use capture button above</label>
+          <textarea id="jdInput" rows="8" placeholder="Paste the full job description, or click 'capture job page' while on a Greenhouse/Lever/LinkedIn/any job page..."></textarea>
         </div>
         <div class="field">
           <label class="field-label">blocks to include</label>
           <div class="section-label">experience</div>
-          <div class="block-grid" id="expBlocks"></div>
+          <div id="expBlocks"></div>
           <div class="section-label" style="margin-top:10px">projects</div>
-          <div class="block-grid" id="projBlocks"></div>
+          <div id="projBlocks"></div>
         </div>
-        <button class="btn btn-primary" id="tailorBtn" onclick="tailorResume()">tailor resume →</button>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="tailorBtn" onclick="tailorResume()">tailor resume →</button>
+          <button class="btn btn-secondary" id="bothBtn" onclick="tailorAndCoverLetter()" title="Generate resume + cover letter in one click">tailor + cover letter</button>
+        </div>
       </div>
     </div>
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">tailored output</span>
-        <button class="copy-btn" id="copyOutputBtn" onclick="copyOutput()" style="margin-left:auto">copy .tex</button>
+        <button class="copy-btn" id="copyOutputBtn" onclick="copyOutput()">copy .tex</button>
       </div>
       <div class="panel-body" style="display:flex;flex-direction:column;gap:10px">
         <div id="keywordsBox" style="display:none"></div>
         <div id="thinkingBox" style="display:none"></div>
+        <div id="statusStrip" class="status-strip" style="display:none"></div>
         <div class="output-area" id="outputArea">
           <span class="output-placeholder">Tailored LaTeX will appear here...</span>
         </div>
@@ -566,27 +245,27 @@ textarea::placeholder { color: var(--muted); }
 
 <!-- COVER LETTER PAGE -->
 <div class="page" id="page-coverletter">
-  <div class="coverletter-layout">
+  <div class="tailor-layout">
     <div class="panel">
       <div class="panel-header"><span class="panel-title">cover letter inputs</span></div>
       <div class="panel-body">
-        <div class="cl-field">
+        <div class="field">
           <label class="field-label">company name</label>
           <textarea id="clCompany" rows="1" placeholder="e.g. Google"></textarea>
         </div>
-        <div class="cl-field">
+        <div class="field">
           <label class="field-label">role / position</label>
           <textarea id="clRole" rows="1" placeholder="e.g. Software Engineering Intern"></textarea>
         </div>
-        <div class="cl-field">
+        <div class="field">
           <label class="field-label">job description</label>
-          <textarea id="clJD" rows="6" placeholder="Paste the job description or key requirements..."></textarea>
+          <textarea id="clJD" rows="6" placeholder="Paste JD — auto-filled if you used capture →"></textarea>
         </div>
-        <div class="cl-field">
-          <label class="field-label">specific points to highlight (optional)</label>
-          <textarea id="clNotes" rows="2" placeholder="e.g. Mention my Helivox experience, interested in frontend..."></textarea>
+        <div class="field">
+          <label class="field-label">specific points (optional)</label>
+          <textarea id="clNotes" rows="2" placeholder="e.g. mention Helivox, interested in infra..."></textarea>
         </div>
-        <div class="cl-field">
+        <div class="field">
           <label class="field-label">tone</label>
           <select id="clTone" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none">
             <option value="professional">Professional</option>
@@ -601,11 +280,11 @@ textarea::placeholder { color: var(--muted); }
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title">cover letter</span>
-        <button class="copy-btn" id="copyClBtn" onclick="copyCoverLetter()" style="margin-left:auto">copy</button>
+        <button class="copy-btn" id="copyClBtn" onclick="copyCoverLetter()">copy</button>
       </div>
       <div class="panel-body">
         <div class="cl-output-area" id="clOutput">
-          <span class="output-placeholder">Your cover letter will appear here...</span>
+          <span class="output-placeholder">Cover letter will appear here...</span>
         </div>
       </div>
     </div>
@@ -641,47 +320,34 @@ textarea::placeholder { color: var(--muted); }
     <div>
       <div class="settings-group">
         <div class="settings-group-title">Gemini API Key</div>
-        <input class="settings-input" id="apiKeyInput" type="password" placeholder="Enter your Gemini API key">
+        <input class="settings-input" id="apiKeyInput" type="password" placeholder="Enter your Gemini API key (AIza...)">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:5px">
           Get a free key at <a href="https://ai.google.dev" target="_blank" style="color:var(--accent)">ai.google.dev</a>
         </div>
         <button class="btn btn-primary" style="width:auto;margin-top:8px;padding:6px 16px" onclick="saveApiKey()">save</button>
-        <div class="settings-save-msg" id="saveMsg">✓ API key saved</div>
+        <div class="settings-save-msg" id="saveMsg">✓ saved</div>
       </div>
       <div class="settings-group">
         <div class="settings-group-title">Model</div>
         <select id="modelSelect" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11px;padding:7px 10px;outline:none">
-          <option value="gemini-2.0-flash">gemini-2.0-flash (fast, free tier)</option>
-          <option value="gemini-2.5-flash-preview-05-20">gemini-2.5-flash-preview (smarter)</option>
-          <option value="gemini-2.5-pro-preview-05-06">gemini-2.5-pro-preview (best quality)</option>
+          <option value="gemini-2.5-flash">gemini-2.5-flash (fast, free tier)</option>
+          <option value="gemini-2.5-pro">gemini-2.5-pro (best quality)</option>
         </select>
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:5px">
-          Flash is fastest and free; Pro has best reasoning
-        </div>
       </div>
       <div class="settings-group">
-        <div class="settings-group-title">Your Info (used in cover letters)</div>
-        <div style="margin-bottom:8px">
-          <label class="field-label">email</label>
-          <input class="settings-input" id="settingsEmail" type="email" value="jonliang@umich.edu">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="field-label">phone</label>
-          <input class="settings-input" id="settingsPhone" type="text" value="(309) 361-7377">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="field-label">linkedin</label>
-          <input class="settings-input" id="settingsLinkedin" type="text" value="linkedin.com/in/johnnyhliang">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="field-label">github</label>
-          <input class="settings-input" id="settingsGithub" type="text" value="github.com/johnnyhliang">
-        </div>
-        <div style="margin-bottom:8px">
-          <label class="field-label">website</label>
-          <input class="settings-input" id="settingsWebsite" type="text" value="johnnyliang.me">
-        </div>
+        <div class="settings-group-title">Your Info</div>
+        <div style="margin-bottom:8px"><label class="field-label">email</label><input class="settings-input" id="settingsEmail" type="email"></div>
+        <div style="margin-bottom:8px"><label class="field-label">phone</label><input class="settings-input" id="settingsPhone" type="text"></div>
+        <div style="margin-bottom:8px"><label class="field-label">linkedin</label><input class="settings-input" id="settingsLinkedin" type="text"></div>
+        <div style="margin-bottom:8px"><label class="field-label">github</label><input class="settings-input" id="settingsGithub" type="text"></div>
+        <div style="margin-bottom:8px"><label class="field-label">website</label><input class="settings-input" id="settingsWebsite" type="text"></div>
         <button class="btn btn-primary" style="width:auto;margin-top:6px;padding:6px 16px" onclick="savePersonalInfo()">save info</button>
+      </div>
+      <div class="settings-group">
+        <div class="settings-group-title">Personal Context</div>
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);margin-bottom:8px">Prepended to every Gemini call. Add: target roles, story bank (STAR format), voice sample, dealbreakers.</div>
+        <textarea id="personalContext" rows="10" style="font-family:var(--mono);font-size:11px" placeholder="e.g.&#10;Target: SWE intern at infra/devtools/fintech Series A–B, remote or SF/NYC.&#10;&#10;Story — ownership: At Helivox I rewrote the audio pipeline solo...&#10;Story — technical depth: Multi-chain indexer in Go, 2M+ tx/day...&#10;&#10;Voice: direct, no fluff, precise."></textarea>
+        <button class="btn btn-primary" style="width:auto;margin-top:8px;padding:6px 16px" onclick="savePersonalContext()">save context</button>
       </div>
     </div>
   </div>

@@ -1,0 +1,69 @@
+<h2>Two problems, one design decision each</h2>
+<p class="subtitle">Pick the approach for each — they're independent</p>
+
+<div class="section">
+  <div class="label">Problem 1 — Token efficiency & speed</div>
+  <div class="options">
+    <div class="option" data-choice="efficiency-a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>Client-side pre-processing + targeted LLM</h3>
+        <p>Extract keywords from JD in the browser (JS, zero tokens). Score blocks by keyword overlap — only send relevant blocks to Gemini. Strip LaTeX boilerplate before sending, reapply after.</p>
+        <div class="pros-cons" style="margin-top:10px">
+          <div class="pros"><h4>Pros</h4><ul><li>~60–70% fewer tokens</li><li>Faster (smaller payloads)</li><li>Better quality — LLM focuses only on relevant blocks</li></ul></div>
+          <div class="cons"><h4>Cons</h4><ul><li>Still uses LLM for rewrites</li><li>Keyword extractor needs some tuning</li></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="option" data-choice="efficiency-b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>Two-mode: instant highlight + optional LLM rewrite</h3>
+        <p>Default flow: client-side only — extract keywords, score blocks, highlight gaps, auto-update skills section. LLM rewrite is opt-in per block via a "rewrite with AI" button.</p>
+        <div class="pros-cons" style="margin-top:10px">
+          <div class="pros"><h4>Pros</h4><ul><li>Instant results for the common case</li><li>Zero tokens unless you click rewrite</li><li>Granular control over what gets rewritten</li></ul></div>
+          <div class="cons"><h4>Cons</h4><ul><li>More UI work</li><li>Per-block rewrites are smaller prompts but more round-trips</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:32px">
+  <div class="label">Problem 2 — PDF export</div>
+  <div class="options">
+    <div class="option" data-choice="pdf-a" onclick="toggleSelect(this)">
+      <div class="letter">A</div>
+      <div class="content">
+        <h3>LaTeX compile API → direct PDF download</h3>
+        <p>Send the assembled <code>.tex</code> to a free LaTeX compilation API (e.g. <code>latexonline.cc</code>). Get a PDF blob back, trigger browser download. Pixel-perfect match to your resume template.</p>
+        <div class="pros-cons" style="margin-top:10px">
+          <div class="pros"><h4>Pros</h4><ul><li>Exact same output as Overleaf</li><li>One-click download, no copy-paste</li><li>No layout maintenance</li></ul></div>
+          <div class="cons"><h4>Cons</h4><ul><li>~5–15s compile time</li><li>Depends on external free service</li><li>May fail if service is down</li></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="option" data-choice="pdf-b" onclick="toggleSelect(this)">
+      <div class="letter">B</div>
+      <div class="content">
+        <h3>HTML resume mirror + browser print-to-PDF</h3>
+        <p>Build a styled HTML version of the resume that mirrors the LaTeX layout. "Download PDF" triggers <code>window.print()</code> with <code>@media print</code> CSS — browser exports it as PDF natively.</p>
+        <div class="pros-cons" style="margin-top:10px">
+          <div class="pros"><h4>Pros</h4><ul><li>Instant, no external service</li><li>Works offline</li><li>Preview in-app before export</li></ul></div>
+          <div class="cons"><h4>Cons</h4><ul><li>HTML layout ≠ LaTeX exactly</li><li>Browser print dialog (not seamless on all browsers)</li><li>Need to maintain HTML template alongside LaTeX blocks</li></ul></div>
+        </div>
+      </div>
+    </div>
+    <div class="option" data-choice="pdf-ab" onclick="toggleSelect(this)">
+      <div class="letter">C</div>
+      <div class="content">
+        <h3>Both — HTML preview + LaTeX API download</h3>
+        <p>Render the resume as HTML live in the app (instant preview as you toggle blocks). "Download PDF" button calls the LaTeX API for the pixel-perfect version. HTML preview doubles as a fast visual check before compiling.</p>
+        <div class="pros-cons" style="margin-top:10px">
+          <div class="pros"><h4>Pros</h4><ul><li>Best UX — see changes live, download when ready</li><li>API failure falls back gracefully to copy .tex</li></ul></div>
+          <div class="cons"><h4>Cons</h4><ul><li>Most work to build</li><li>HTML and LaTeX can drift if blocks are edited</li></ul></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

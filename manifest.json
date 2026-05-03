@@ -1,0 +1,30 @@
+{
+  "name": "Resume Tailor",
+  "short_name": "Tailor",
+  "description": "AI-powered resume tailoring and job-hunting suite",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f5f3ef",
+  "theme_color": "#2c5f2e",
+  "icons": [
+    {
+      "src": "extension/icons/icon-48.png",
+      "sizes": "48x48",
+      "type": "image/png"
+    },
+    {
+      "src": "extension/icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ],
+  "share_target": {
+    "action": "index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}

@@ -1,6 +1,4 @@
-// ===== APP LOGIC =====
-
-// State
+// ===== STATE =====
 let selectedBlocks = new Set(
   [...BLOCKS.experience, ...BLOCKS.projects].filter(b => b.active).map(b => b.id)
 );
@@ -10,8 +8,8 @@ let lastCoverLetter = '';
 
 // ===== SETTINGS =====
 async function loadSettings() {
-  const result = await chrome.storage.local.get(['geminiApiKey', 'selectedModel', 'personalInfo']);
-  
+  const result = await chrome.storage.local.get(['geminiApiKey', 'selectedModel', 'personalInfo', 'personalContext']);
+
   if (result.geminiApiKey) {
     document.getElementById('apiKeyInput').value = result.geminiApiKey;
     updateApiStatus(true);
@@ -19,30 +17,26 @@ async function loadSettings() {
     updateApiStatus(false);
   }
 
-  if (result.selectedModel) {
-    document.getElementById('modelSelect').value = result.selectedModel;
-  }
+  if (result.selectedModel) document.getElementById('modelSelect').value = result.selectedModel;
 
   if (result.personalInfo) {
     const info = result.personalInfo;
-    document.getElementById('settingsEmail').value = info.email || '';
-    document.getElementById('settingsPhone').value = info.phone || '';
-    document.getElementById('settingsLinkedin').value = info.linkedin || '';
-    document.getElementById('settingsGithub').value = info.github || '';
-    document.getElementById('settingsWebsite').value = info.website || '';
+    if (info.email) document.getElementById('settingsEmail').value = info.email;
+    if (info.phone) document.getElementById('settingsPhone').value = info.phone;
+    if (info.linkedin) document.getElementById('settingsLinkedin').value = info.linkedin;
+    if (info.github) document.getElementById('settingsGithub').value = info.github;
+    if (info.website) document.getElementById('settingsWebsite').value = info.website;
   }
+
+  if (result.personalContext) document.getElementById('personalContext').value = result.personalContext;
 }
 
 async function saveApiKey() {
   const key = document.getElementById('apiKeyInput').value.trim();
   if (!key) { alert('Enter an API key first.'); return; }
-  
   await chrome.storage.local.set({ geminiApiKey: key });
   updateApiStatus(true);
-  
-  const msg = document.getElementById('saveMsg');
-  msg.style.display = 'block';
-  setTimeout(() => msg.style.display = 'none', 2000);
+  flashSave('✓ API key saved');
 }
 
 async function savePersonalInfo() {
@@ -54,52 +48,131 @@ async function savePersonalInfo() {
     website: document.getElementById('settingsWebsite').value.trim()
   };
   await chrome.storage.local.set({ personalInfo: info });
-  
-  const msg = document.getElementById('saveMsg');
-  msg.textContent = '✓ Personal info saved';
-  msg.style.display = 'block';
-  setTimeout(() => msg.style.display = 'none', 2000);
+  flashSave('✓ Personal info saved');
+}
+
+async function savePersonalContext() {
+  const ctx = document.getElementById('personalContext').value.trim();
+  await chrome.storage.local.set({ personalContext: ctx });
+  flashSave('✓ Context saved');
 }
 
 async function saveModel() {
-  const model = document.getElementById('modelSelect').value;
-  await chrome.storage.local.set({ selectedModel: model });
+  await chrome.storage.local.set({ selectedModel: document.getElementById('modelSelect').value });
+}
+
+function flashSave(msg) {
+  const el = document.getElementById('saveMsg');
+  el.textContent = msg;
+  el.style.display = 'block';
+  setTimeout(() => el.style.display = 'none', 2000);
 }
 
 function updateApiStatus(connected) {
   const el = document.getElementById('apiStatus');
-  if (connected) {
-    el.textContent = '● gemini connected';
-    el.className = 'api-status connected';
-  } else {
-    el.textContent = '⚙ configure API key';
-    el.className = 'api-status error';
-  }
+  el.textContent = connected ? '● gemini connected' : '⚙ configure API key';
+  el.className = 'api-status ' + (connected ? 'connected' : 'error');
 }
 
 // ===== NAVIGATION =====
 function switchTab(tab) {
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent.includes(tab.split(' ')[0])));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.textContent.trim() === tab || t.textContent.trim() === (tab === 'coverletter' ? 'cover letter' : tab)));
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  
-  const pageMap = {
-    'tailor': 'page-tailor',
-    'coverletter': 'page-coverletter',
-    'library': 'page-library',
-    'settings': 'page-settings'
-  };
-  
-  document.getElementById(pageMap[tab]).classList.add('active');
+  document.getElementById('page-' + tab).classList.add('active');
+}
+
+// ===== CAPTURE CURRENT JOB PAGE =====
+async function captureCurrentPage() {
+  const btn = document.getElementById('captureBtn');
+  const urlEl = document.getElementById('captureUrl');
+  btn.disabled = true;
+  btn.textContent = 'capturing...';
+
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    urlEl.textContent = tab.url;
+    urlEl.className = 'capture-url';
+
+    // Inject script to extract page text
+    const results = await chrome.scripting.executeScript({
+      target: { tabId: tab.id },
+      func: extractJobText
+    });
+
+    const extracted = results[0]?.result || '';
+    if (!extracted) throw new Error('Could not read page content');
+
+    // Auto-detect company from URL
+    const company = extractCompanyFromUrl(tab.url, tab.title);
+
+    // Populate JD fields across tabs
+    document.getElementById('jdInput').value = extracted;
+    document.getElementById('clJD').value = extracted;
+    if (company) {
+      document.getElementById('clCompany').value = company;
+    }
+
+    urlEl.textContent = `captured: ${tab.title || tab.url}`;
+    urlEl.className = 'capture-url loaded';
+    btn.textContent = 'captured ✓';
+    setTimeout(() => { btn.disabled = false; btn.textContent = 'capture job page'; }, 2500);
+  } catch (err) {
+    urlEl.textContent = 'Error: ' + err.message;
+    btn.disabled = false;
+    btn.textContent = 'capture job page';
+  }
+}
+
+// Runs in page context — extracts visible job text, preferring known job board selectors
+function extractJobText() {
+  const selectors = [
+    // Greenhouse
+    '#content', '.job-post', '.job__description',
+    // Lever
+    '.posting-content', '.posting',
+    // Workday
+    '[data-automation-id="job-posting-details"]',
+    // LinkedIn
+    '.jobs-description', '.jobs-box__html-content',
+    // Ashby
+    '.ashby-job-posting-brief-description',
+    // Generic
+    'main', 'article', '#main-content', '.job-description', '.description'
+  ];
+
+  for (const sel of selectors) {
+    const el = document.querySelector(sel);
+    if (el && el.innerText.length > 200) return el.innerText.trim();
+  }
+
+  // Fallback: full body text (Gemini will filter)
+  return document.body.innerText.trim().slice(0, 15000);
+}
+
+function extractCompanyFromUrl(url, title) {
+  try {
+    const host = new URL(url).hostname.replace('www.', '').replace('jobs.', '').replace('careers.', '');
+    // Known boards — company is in path or title
+    if (host.includes('greenhouse.io') || host.includes('lever.co') || host.includes('ashbyhq.com')) {
+      const match = url.match(/\/([\w-]+)\//);
+      if (match) return match[1].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+    if (host.includes('linkedin.com')) {
+      // Title is usually "Company - Role | LinkedIn"
+      const parts = (title || '').split(' - ');
+      if (parts.length > 1) return parts[0].trim();
+    }
+    // Use domain as fallback
+    return host.split('.')[0].replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  } catch { return ''; }
 }
 
 // ===== BLOCK SELECTORS =====
 function renderBlockSelectors() {
   const expContainer = document.getElementById('expBlocks');
   const projContainer = document.getElementById('projBlocks');
-
   expContainer.innerHTML = '';
   projContainer.innerHTML = '';
-
   BLOCKS.experience.forEach(b => expContainer.appendChild(makeBlockToggle(b)));
   BLOCKS.projects.forEach(b => projContainer.appendChild(makeBlockToggle(b)));
 }
@@ -150,7 +223,6 @@ function renderLibEditor() {
   const allBlocks = [...BLOCKS.experience, ...BLOCKS.projects, ...BLOCKS.static];
   const block = allBlocks.find(b => b.id === activeLibItem);
   if (!block) return;
-
   editor.innerHTML = `
     <div style="display:flex;align-items:center;gap:8px">
       <span style="font-size:13px;font-weight:600">${block.name}</span>
@@ -158,9 +230,7 @@ function renderLibEditor() {
       <button class="copy-btn" id="libCopyBtn" onclick="copyBlock('${block.id}')">copy</button>
     </div>
     <textarea id="libTexArea" rows="18" style="flex:1;min-height:250px">${escapeHtml(block.tex)}</textarea>
-    <div style="display:flex;gap:6px">
-      <button class="btn btn-primary" style="width:auto;padding:7px 16px" onclick="saveBlock('${block.id}')">save changes</button>
-    </div>
+    <button class="btn btn-primary" style="width:auto;padding:7px 16px" onclick="saveBlock('${block.id}')">save changes</button>
   `;
 }
 
@@ -191,29 +261,24 @@ function copyBlock(id) {
   setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 1500);
 }
 
-// ===== GEMINI API CALL =====
+// ===== GEMINI API =====
 async function callGemini(prompt) {
-  const result = await chrome.storage.local.get(['geminiApiKey', 'selectedModel']);
+  const result = await chrome.storage.local.get(['geminiApiKey', 'selectedModel', 'personalContext']);
   const apiKey = result.geminiApiKey;
-  const model = result.selectedModel || 'gemini-2.0-flash';
+  const model = result.selectedModel || 'gemini-2.5-flash';
+  const ctx = result.personalContext || '';
 
-  if (!apiKey) {
-    throw new Error('No API key configured. Go to Settings tab to add your Gemini API key.');
-  }
+  if (!apiKey) throw new Error('No API key configured. Go to Settings tab.');
+
+  if (ctx) prompt = `=== ABOUT ME (use as background for every response) ===\n${ctx}\n=== END ABOUT ME ===\n\n${prompt}`;
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      contents: [{
-        parts: [{ text: prompt }]
-      }],
-      generationConfig: {
-        maxOutputTokens: 4000,
-        temperature: 0.3
-      }
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: 4000, temperature: 0.3 }
     })
   });
 
@@ -224,34 +289,18 @@ async function callGemini(prompt) {
 
   const data = await response.json();
   const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  
-  if (!text) {
-    throw new Error('No response from Gemini. Try again.');
-  }
-
+  if (!text) throw new Error('No response from Gemini. Try again.');
   return text;
 }
 
 // ===== RESUME TAILORING =====
-async function tailorResume() {
-  const jd = document.getElementById('jdInput').value.trim();
-  if (!jd) { alert('Paste a job description first.'); return; }
-  if (selectedBlocks.size === 0) { alert('Select at least one block.'); return; }
-
-  const btn = document.getElementById('tailorBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="spinner"></span>tailoring...';
-
-  document.getElementById('keywordsBox').style.display = 'none';
-  document.getElementById('thinkingBox').style.display = 'none';
-  document.getElementById('outputArea').innerHTML = '<span class="output-placeholder">generating...</span>';
-
+function buildTailorPrompt(jd) {
   const chosenExp = BLOCKS.experience.filter(b => selectedBlocks.has(b.id));
   const chosenProj = BLOCKS.projects.filter(b => selectedBlocks.has(b.id));
   const blocksForPrompt = [...chosenExp, ...chosenProj].map(b => `[BLOCK: ${b.name}]\n${b.tex}`).join('\n\n');
   const staticSkills = BLOCKS.static.find(b => b.id === 'static_skills');
 
-  const prompt = `You are a resume tailoring assistant for Jonathan Liang, a CS + EE freshman at University of Michigan (GPA 3.68).
+  return `You are a resume tailoring assistant for Jonathan Liang, a CS + EE freshman at University of Michigan (GPA 3.68).
 
 JOB DESCRIPTION:
 ${jd}
@@ -263,44 +312,51 @@ CURRENT SKILLS SECTION:
 ${staticSkills?.tex || ''}
 
 Your task:
-1. Extract the top 10-15 ATS keywords/skills from the JD (both hard skills and soft signals)
-2. For each selected block, rewrite the bullet points to:
-   - Naturally incorporate relevant keywords from the JD without keyword stuffing
-   - Emphasize the most relevant aspects for this specific role
-   - Keep the same LaTeX structure and commands exactly
-   - Keep numbers/metrics intact
-   - Do not fabricate new experiences
-3. Suggest any updates to the skills section (add/reorder languages or technologies that appear in the JD)
-4. Output the full tailored LaTeX for experience + projects sections (not heading/education)
+1. Extract the top 10-15 ATS keywords/skills from the JD
+2. For each selected block, rewrite bullet points to naturally incorporate relevant keywords without fabricating new experiences. Keep LaTeX structure and metrics intact.
+3. Suggest any updates to the skills section.
+4. Output the full tailored LaTeX for experience + projects sections.
 
-First write <thinking> tags with: which keywords are most critical, which blocks are most/least relevant, and your tailoring strategy.
+First write <thinking> tags with your tailoring strategy.
 
 Then output:
-KEYWORDS: [comma-separated list of extracted keywords]
-MISSING: [keywords from JD not currently in resume]
+KEYWORDS: [comma-separated list]
+MISSING: [keywords from JD not in resume]
 
-Then the tailored LaTeX blocks, each wrapped like:
+Then tailored LaTeX blocks:
 ---BLOCK: [block name]---
 [tailored latex]
 ---END---
 
-Then a tailored skills line:
-SKILLS_TEX: [updated \\textbf{Languages}... line only, or UNCHANGED if no update needed]`;
+Then:
+SKILLS_TEX: [updated line or UNCHANGED]`;
+}
 
+async function tailorResume() {
+  const jd = document.getElementById('jdInput').value.trim();
+  if (!jd) { alert('Paste a job description first, or use the capture button.'); return; }
+  if (selectedBlocks.size === 0) { alert('Select at least one block.'); return; }
+
+  setTailorLoading(true);
   try {
-    const text = await callGemini(prompt);
+    const text = await callGemini(buildTailorPrompt(jd));
     lastOutput = text;
-    parseOutput(text);
+    parseTailorOutput(text);
   } catch (err) {
     document.getElementById('outputArea').textContent = 'Error: ' + err.message;
   }
-
-  btn.disabled = false;
-  btn.textContent = 'tailor resume →';
+  setTailorLoading(false);
 }
 
-function parseOutput(text) {
-  // Extract thinking
+function setTailorLoading(on) {
+  const btn = document.getElementById('tailorBtn');
+  const btn2 = document.getElementById('bothBtn');
+  btn.disabled = on;
+  btn2.disabled = on;
+  btn.innerHTML = on ? '<span class="spinner"></span>tailoring...' : 'tailor resume →';
+}
+
+function parseTailorOutput(text) {
   const thinkMatch = text.match(/<thinking>([\s\S]*?)<\/thinking>/);
   if (thinkMatch) {
     const thinkBox = document.getElementById('thinkingBox');
@@ -308,7 +364,6 @@ function parseOutput(text) {
     thinkBox.innerHTML = `<div class="thinking-strip"><div class="thinking-label">tailoring notes</div>${thinkMatch[1].trim()}</div>`;
   }
 
-  // Extract keywords
   const kwMatch = text.match(/KEYWORDS:\s*(.+?)(?:\n|$)/);
   const missingMatch = text.match(/MISSING:\s*(.+?)(?:\n|$)/);
   if (kwMatch) {
@@ -320,30 +375,19 @@ function parseOutput(text) {
       <div class="keywords-title">extracted keywords</div>
       <div class="keyword-chips">
         ${kwList.map(k => `<span class="chip">${k}</span>`).join('')}
-        ${missingList.map(k => `<span class="chip missing" title="missing from resume">⚠ ${k}</span>`).join('')}
+        ${missingList.map(k => `<span class="chip missing">⚠ ${k}</span>`).join('')}
       </div>
     </div>`;
   }
 
-  // Extract blocks and assemble full tex
   const blockMatches = [...text.matchAll(/---BLOCK: (.+?)---\n([\s\S]*?)---END---/g)];
   const skillsMatch = text.match(/SKILLS_TEX:\s*([\s\S]+?)(?:\n\n|$)/);
-
-  const chosenExpIds = BLOCKS.experience.filter(b => selectedBlocks.has(b.id)).map(b => b.id);
-  const chosenProjIds = BLOCKS.projects.filter(b => selectedBlocks.has(b.id)).map(b => b.id);
 
   const tailoredMap = {};
   blockMatches.forEach(m => { tailoredMap[m[1].trim()] = m[2].trim(); });
 
-  let expTex = chosenExpIds.map(id => {
-    const block = BLOCKS.experience.find(b => b.id === id);
-    return tailoredMap[block.name] || block.tex;
-  }).join('\n\n');
-
-  let projTex = chosenProjIds.map(id => {
-    const block = BLOCKS.projects.find(b => b.id === id);
-    return tailoredMap[block.name] || block.tex;
-  }).join('\n\n');
+  const expTex = BLOCKS.experience.filter(b => selectedBlocks.has(b.id)).map(b => tailoredMap[b.name] || b.tex).join('\n\n');
+  const projTex = BLOCKS.projects.filter(b => selectedBlocks.has(b.id)).map(b => tailoredMap[b.name] || b.tex).join('\n\n');
 
   const heading = BLOCKS.static.find(b => b.id === 'static_heading')?.tex || '';
   const education = BLOCKS.static.find(b => b.id === 'static_education')?.tex || '';
@@ -353,44 +397,45 @@ function parseOutput(text) {
   }
 
   const fullTex = [
-    RESUME_PREAMBLE,
-    '',
-    heading,
-    '',
-    '%-----------EDUCATION-----------%',
-    education,
-    '',
-    '%-----------EXPERIENCE-----------%',
-    '\\section{Experience}',
-    '\\resumeSubHeadingListStart',
-    expTex,
-    '\\resumeSubHeadingListEnd',
-    '',
-    '%-----------PROJECTS-----------%',
-    '\\section{Projects}',
-    '\\resumeSubHeadingListStart',
-    projTex,
-    '\\resumeSubHeadingListEnd',
-    '',
-    skillsTex,
-    '',
-    '\\end{document}'
+    RESUME_PREAMBLE, '', heading, '',
+    '%-----------EDUCATION-----------%', education, '',
+    '%-----------EXPERIENCE-----------%', '\\section{Experience}', '\\resumeSubHeadingListStart', expTex, '\\resumeSubHeadingListEnd', '',
+    '%-----------PROJECTS-----------%', '\\section{Projects}', '\\resumeSubHeadingListStart', projTex, '\\resumeSubHeadingListEnd', '',
+    skillsTex, '', '\\end{document}'
   ].join('\n');
 
   document.getElementById('outputArea').textContent = fullTex;
 }
 
-function copyOutput() {
-  const text = document.getElementById('outputArea').textContent;
-  if (!text || text.includes('Tailored LaTeX')) return;
-  navigator.clipboard.writeText(text);
-  const btn = document.getElementById('copyOutputBtn');
-  btn.textContent = 'copied!';
-  btn.classList.add('copied');
-  setTimeout(() => { btn.textContent = 'copy .tex'; btn.classList.remove('copied'); }, 1500);
+// ===== COVER LETTER =====
+function buildCoverLetterPrompt(company, role, jd, notes, tone, info) {
+  return `Write a cover letter for Jonathan Liang applying to this position.
+
+APPLICANT INFO:
+Name: Jonathan Liang
+Email: ${info.email || 'jonliang@umich.edu'}
+Phone: ${info.phone || ''}
+Education: B.S.E Computer Science, Minor Electrical Engineering, University of Michigan, GPA 3.68, Expected May 2028
+
+POSITION:
+Company: ${company}
+Role: ${role}
+
+JOB DESCRIPTION:
+${jd}
+
+${notes ? 'APPLICANT NOTES: ' + notes : ''}
+
+REQUIREMENTS:
+- 3-4 paragraphs, concise and impactful
+- Use specific metrics from Jonathan's background
+- Pick the 1-2 most relevant stories from the personal context above
+- Don't just repeat the resume — show fit and enthusiasm
+- Tone: ${tone}
+- Plain text, ready to paste
+- Include salutation and sign-off with Jonathan's email`;
 }
 
-// ===== COVER LETTER GENERATION =====
 async function generateCoverLetter() {
   const company = document.getElementById('clCompany').value.trim();
   const role = document.getElementById('clRole').value.trim();
@@ -398,60 +443,19 @@ async function generateCoverLetter() {
   const notes = document.getElementById('clNotes').value.trim();
   const tone = document.getElementById('clTone').value;
 
-  if (!company || !role) { alert('Enter at least company name and role.'); return; }
-  if (!jd) { alert('Paste a job description or key requirements.'); return; }
+  if (!company || !role) { alert('Enter company name and role.'); return; }
+  if (!jd) { alert('Paste a job description, or use the capture button on a job page.'); return; }
 
   const btn = document.getElementById('clBtn');
   btn.disabled = true;
   btn.innerHTML = '<span class="spinner"></span>generating...';
-
   document.getElementById('clOutput').innerHTML = '<span class="output-placeholder">generating...</span>';
 
   const result = await chrome.storage.local.get(['personalInfo']);
   const info = result.personalInfo || {};
 
-  const prompt = `Write a cover letter for Jonathan Liang applying to this position.
-
-APPLICANT INFO:
-Name: Jonathan Liang
-Email: ${info.email || 'jonliang@umich.edu'}
-Phone: ${info.phone || '(309) 361-7377'}
-Education: B.S.E Computer Science, Minor Electrical Engineering, University of Michigan, GPA 3.68, Expected May 2028
-
-POSITION:
-Company: ${company}
-Role: ${role}
-
-JOB DESCRIPTION / REQUIREMENTS:
-${jd}
-
-${notes ? 'APPLICANT NOTES: ' + notes : ''}
-
-RESUME CONTEXT (Jonathan's background):
-- Web Development Contractor (Freelance, Mar 2020–Present): 16+ web apps, Next.js, SEO, $10K+ revenue
-- Helivox Lead Developer (Jan 2023–May 2025): Next.js, full-stack, 75+ team members, 70% data entry reduction
-- MIT Beaver Works (Jul–Aug 2024): Hardware engineering, PCB design, CAD, sensor integration
-- Discord App Platform: 40,000+ users, OAuth, Redis, MongoDB, 99.9% uptime
-- Celiac Disease CNN Research: Deep learning, NCBI GEO, computational biology
-- SemComp: Semantic text classification, 86% accuracy, PyTorch
-- Crypto Monte Carlo Simulator: Geometric Brownian Motion, risk analysis, VaR
-- Multi-Chain USDC Payment Indexer: Rust, Tokio, PostgreSQL, Ethereum/Base/Polygon
-- Skills: C, C++, Rust, TypeScript, Python, MATLAB, Solidity, PyTorch, NextJS, Docker, AWS
-- Awards: Google Code Jam Round 2 (2022), USACO Gold (2024)
-
-TONE: ${tone}
-
-Requirements:
-- Keep it to 3-4 paragraphs, concise and impactful
-- Use specific metrics from Jonathan's experience where relevant
-- Don't just repeat the resume — tell a story about why Jonathan is a great fit
-- Match the tone requested
-- Format as plain text (not LaTeX), ready to paste into email or document
-- Include proper salutation and sign-off
-- Use Jonathan's email in the sign-off`;
-
   try {
-    const text = await callGemini(prompt);
+    const text = await callGemini(buildCoverLetterPrompt(company, role, jd, notes, tone, info));
     lastCoverLetter = text;
     document.getElementById('clOutput').textContent = text;
   } catch (err) {
@@ -462,9 +466,82 @@ Requirements:
   btn.textContent = 'generate cover letter →';
 }
 
+// ===== COMBINED ONE-CLICK FLOW =====
+async function tailorAndCoverLetter() {
+  const jd = document.getElementById('jdInput').value.trim();
+  if (!jd) { alert('Paste a job description first, or use the capture button.'); return; }
+  if (selectedBlocks.size === 0) { alert('Select at least one block.'); return; }
+
+  const btn = document.getElementById('bothBtn');
+  const tailorBtn = document.getElementById('tailorBtn');
+  btn.disabled = true;
+  tailorBtn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>tailoring...';
+
+  const statusStrip = document.getElementById('statusStrip');
+  statusStrip.style.display = 'block';
+  statusStrip.textContent = 'step 1/2 — tailoring resume...';
+
+  document.getElementById('outputArea').innerHTML = '<span class="output-placeholder">generating...</span>';
+
+  try {
+    // Step 1: tailor resume
+    const tailorText = await callGemini(buildTailorPrompt(jd));
+    lastOutput = tailorText;
+    parseTailorOutput(tailorText);
+
+    // Extract company/role from JD for cover letter
+    const company = document.getElementById('clCompany').value.trim() || await extractCompanyRoleFromJD(jd);
+    const role = document.getElementById('clRole').value.trim() || '';
+
+    statusStrip.textContent = 'step 2/2 — generating cover letter...';
+
+    // Step 2: cover letter
+    const result = await chrome.storage.local.get(['personalInfo']);
+    const info = result.personalInfo || {};
+    const tone = document.getElementById('clTone').value;
+    const notes = document.getElementById('clNotes').value.trim();
+
+    // Sync JD to cover letter tab
+    document.getElementById('clJD').value = jd;
+    if (company) document.getElementById('clCompany').value = company;
+
+    const clText = await callGemini(buildCoverLetterPrompt(company || 'the company', role || 'the role', jd, notes, tone, info));
+    lastCoverLetter = clText;
+    document.getElementById('clOutput').textContent = clText;
+
+    statusStrip.textContent = '✓ done — resume + cover letter ready';
+    setTimeout(() => { statusStrip.style.display = 'none'; }, 3000);
+  } catch (err) {
+    statusStrip.textContent = 'Error: ' + err.message;
+    document.getElementById('outputArea').textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  tailorBtn.disabled = false;
+  btn.textContent = 'tailor + cover letter';
+}
+
+async function extractCompanyRoleFromJD(jd) {
+  // Quick heuristic: look for "at [Company]" or "[Company] is hiring"
+  const match = jd.match(/(?:at|@|join)\s+([A-Z][a-zA-Z0-9\s&]{1,30}?)(?:\s*[,\n]|\s+as\s|\s+for\s)/);
+  return match ? match[1].trim() : '';
+}
+
+// ===== COPY =====
+function copyOutput() {
+  const text = document.getElementById('outputArea').textContent;
+  if (!text || text.includes('Tailored LaTeX')) return;
+  navigator.clipboard.writeText(text);
+  const btn = document.getElementById('copyOutputBtn');
+  btn.textContent = 'copied!';
+  btn.classList.add('copied');
+  setTimeout(() => { btn.textContent = 'copy .tex'; btn.classList.remove('copied'); }, 1500);
+}
+
 function copyCoverLetter() {
   const text = document.getElementById('clOutput').textContent;
-  if (!text || text.includes('cover letter will appear')) return;
+  if (!text || text.includes('will appear')) return;
   navigator.clipboard.writeText(text);
   const btn = document.getElementById('copyClBtn');
   btn.textContent = 'copied!';
@@ -477,7 +554,12 @@ document.addEventListener('DOMContentLoaded', () => {
   loadSettings();
   renderBlockSelectors();
   renderLibrary();
-  
-  // Save model when changed
   document.getElementById('modelSelect').addEventListener('change', saveModel);
+
+  // Show current tab URL in capture banner
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (tab?.url && !tab.url.startsWith('chrome://') && !tab.url.startsWith('about:')) {
+      document.getElementById('captureUrl').textContent = tab.url;
+    }
+  });
 });

@@ -1,0 +1,99 @@
+<h2>Where does the live resume preview live?</h2>
+<p class="subtitle">The HTML preview replaces the current raw LaTeX output area</p>
+
+<div class="options">
+  <div class="option" data-choice="layout-a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Split pane — preview alongside controls</h3>
+      <div class="mockup" style="margin-top:8px">
+        <div class="mockup-header">Tailor tab</div>
+        <div class="mockup-body" style="display:flex;gap:8px;min-height:220px">
+          <div style="flex:1;display:flex;flex-direction:column;gap:6px">
+            <div class="placeholder" style="height:80px;font-size:10px">JD input</div>
+            <div class="placeholder" style="height:50px;font-size:10px">Block toggles</div>
+            <div class="mock-button" style="font-size:10px;width:100%;text-align:center">tailor resume →</div>
+          </div>
+          <div style="flex:1.2;display:flex;flex-direction:column;gap:6px">
+            <div class="placeholder" style="flex:1;font-size:10px;background:#f9f7f4;border:1px solid #e0dbd3">
+              <div style="padding:8px;font-size:9px;font-family:monospace;line-height:1.6">
+                <div style="font-weight:600;font-size:10px;margin-bottom:4px">Jonathan Liang</div>
+                <div style="color:#888">jonliang@umich.edu · linkedin · github</div>
+                <div style="border-bottom:1px solid #ccc;margin:6px 0"></div>
+                <div style="font-weight:600;font-size:9px">EDUCATION</div>
+                <div style="color:#888;font-size:9px">University of Michigan...</div>
+                <div style="border-bottom:1px solid #ccc;margin:6px 0"></div>
+                <div style="font-weight:600;font-size:9px">EXPERIENCE</div>
+                <div style="color:#888;font-size:9px">• Tailored bullet point...</div>
+                <div style="color:#888;font-size:9px">• Another bullet...</div>
+              </div>
+            </div>
+            <div style="display:flex;gap:4px">
+              <div class="mock-button" style="font-size:10px;flex:1;text-align:center;background:#2c5f2e;color:white;border-radius:4px;padding:5px">↓ download PDF</div>
+              <div class="mock-button" style="font-size:10px;flex:1;text-align:center">copy .tex</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:8px;font-size:12px">Preview updates live as you toggle blocks or after tailoring. Controls and preview always visible together.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="layout-b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Stacked — preview below, scrollable</h3>
+      <div class="mockup" style="margin-top:8px">
+        <div class="mockup-header">Tailor tab</div>
+        <div class="mockup-body" style="display:flex;flex-direction:column;gap:6px;min-height:220px">
+          <div style="display:flex;gap:6px">
+            <div class="placeholder" style="flex:1;height:60px;font-size:10px">JD input</div>
+            <div class="placeholder" style="flex:1;height:60px;font-size:10px">Block toggles</div>
+          </div>
+          <div class="mock-button" style="font-size:10px;width:180px;text-align:center">tailor resume →</div>
+          <div style="border-top:1px solid #e0dbd3;padding-top:6px;font-size:9px;color:#888;font-family:var(--mono)">── resume preview ──</div>
+          <div class="placeholder" style="flex:1;font-size:9px;min-height:100px">
+            <div style="padding:8px;line-height:1.6">
+              <div style="font-weight:600;font-size:10px">Jonathan Liang</div>
+              <div style="color:#aaa;font-size:9px">EXPERIENCE · PROJECTS · SKILLS</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <div class="mock-button" style="font-size:10px;flex:1;text-align:center;background:#2c5f2e;color:white;border-radius:4px;padding:5px">↓ download PDF</div>
+            <div class="mock-button" style="font-size:10px;text-align:center">copy .tex</div>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:8px;font-size:12px">Simpler layout. Preview appears after tailoring, scroll down to see it. Better for narrow screens.</p>
+    </div>
+  </div>
+
+  <div class="option" data-choice="layout-c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>New "Preview" tab</h3>
+      <div class="mockup" style="margin-top:8px">
+        <div class="mockup-header">
+          <span style="font-family:monospace;font-size:10px">tailor &nbsp;|&nbsp; cover letter &nbsp;|&nbsp; block library &nbsp;|&nbsp; <strong>preview</strong> &nbsp;|&nbsp; settings</span>
+        </div>
+        <div class="mockup-body" style="min-height:180px;display:flex;flex-direction:column;gap:6px">
+          <div style="font-size:9px;color:#888;font-family:var(--mono)">After tailoring → switches here automatically</div>
+          <div class="placeholder" style="flex:1;font-size:9px;min-height:120px">
+            <div style="padding:10px;line-height:1.7">
+              <div style="font-weight:600;font-size:11px">Jonathan Liang</div>
+              <div style="color:#aaa;font-size:9px">University of Michigan · GPA 3.68</div>
+              <div style="border-bottom:1px solid #ccc;margin:6px 0"></div>
+              <div style="font-weight:600;font-size:9px">EXPERIENCE</div>
+              <div style="color:#888;font-size:9px">• Tailored bullet · keyword · metric</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:4px">
+            <div class="mock-button" style="font-size:10px;flex:1;text-align:center;background:#2c5f2e;color:white;border-radius:4px;padding:5px">↓ download PDF</div>
+            <div class="mock-button" style="font-size:10px;text-align:center">copy .tex</div>
+          </div>
+        </div>
+      </div>
+      <p style="margin-top:8px;font-size:12px">Clean separation. Tailor tab stays focused on inputs. Preview tab is full-width for the resume. Auto-switches after tailoring.</p>
+    </div>
+  </div>
+</div>
